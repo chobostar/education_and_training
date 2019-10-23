@@ -1,0 +1,25 @@
+import unittest
+from maximum_loot import maximum_loot_value
+
+
+class TestMaximumLoot(unittest.TestCase):
+    def test(self):
+        for (capacity, weights, prices, answer) in [
+            (50, [20, 50, 30], [60, 100, 120], 180.0),
+            (10, [30], [500], 500/3),
+            (3, [1, 2, 3], [1, 2, 3], 3)
+        ]:
+            self.assertAlmostEqual(
+                maximum_loot_value(capacity, weights, prices),
+                answer,
+                delta=1e-03
+            )
+        self.assertAlmostEqual(
+           maximum_loot_value(2 * (10 ** 6), [1 for i in range(10**3)], [1 for j in range(10**3)]),
+           1000,
+           delta=1e-03
+        )
+
+
+if __name__ == '__main__':
+    unittest.main()
