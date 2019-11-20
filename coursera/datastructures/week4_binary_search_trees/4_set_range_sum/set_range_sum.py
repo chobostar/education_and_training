@@ -133,7 +133,31 @@ def insert(x):
 def erase(x): 
   global root
   # Implement erase yourself
-  pass
+  key, root = find(root, x)
+  root = splay(next(key))
+  root = splay(key)
+  delete(key)
+
+def promote(key, parent, grand_parent):
+  if grand_parent.left == parent:
+    grand_parent.left = key
+  if grand_parent.right == parent:
+    grand_parent.right = key
+  if key is not None:
+    key.parent = grand_parent
+
+def delete(key):
+  if key.right is None:
+    promote(key.left, key, key.parent)
+  else:
+    x = next(key)
+    x.left, x.right, x.parent,
+    if key.left is not None:
+      key.left.parent = x
+    promote(x, key, key.parent)
+
+
+
 
 def search(x): 
   global root
@@ -149,6 +173,25 @@ def sum(fr, to):
   # Complete the implementation of sum
 
   return ans
+
+def next(key):
+  if key.right is not None:
+    return left_descendant(key.right)
+  else:
+    return right_ancestor(key)
+
+def left_descendant(key):
+  if key.left is None:
+    return key
+  else:
+    return left_descendant(key.left)
+
+def right_ancestor(key):
+  if key.key < key.parent.key:
+    return key.parent
+  else:
+    return right_ancestor(key.parent)
+
 
 MODULO = 1000000001
 n = int(stdin.readline())

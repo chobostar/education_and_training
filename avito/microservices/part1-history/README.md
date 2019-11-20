@@ -19,51 +19,53 @@
 		- бэкофис в той же репе
 		- интеграционнное api
 		- LB -> avi-http 1..N (различные правила маршрутизации, разные роутеры, домены, правила proxy buffer size, все что мжно тюнить nginx - репа avito-utils)
-				avi-http -> apps 1..M (lxc-контейнеры)
-				- cron/daemons
-				- user req serving
-				- backoffice
-				apps
-				- nginx, tcp keepalive с avi-http
-				- export rsyslog to CH
-				- sentry logger
-				- xproxy (nosql-db дискавери через consul)
-					- haproxy
-					- twemproxy
-						- redis
-				- twemproxy
-					- memcache (избавлются)
-				- haproxy
-					- sphinx
-				- redis local
-				- pgbouncer
-					- pgping
-						- проверяет master/replica
-					- карусель standby
-				- php-fpm
-				- cron stats, core-nginx
-				avi-http -> k8s
+            - avi-http -> apps 1..M (lxc-контейнеры)
+                - cron/daemons
+                - user req serving
+                - backoffice
+            - apps
+            - nginx, tcp keepalive с avi-http
+            - export rsyslog to CH
+            - sentry logger
+            - xproxy (nosql-db дискавери через consul)
+                - haproxy
+                - twemproxy
+                    - redis
+            - twemproxy
+                - memcache (избавлются)
+            - haproxy
+                - sphinx
+            - redis local
+            - pgbouncer
+                - pgping
+                    - проверяет master/replica
+                - карусель standby
+            - php-fpm
+            - cron stats, core-nginx
+            avi-http -> k8s
 		- apps, k8s -> Databases, Search engines
 		- итого:
+			- плюсы:
 				+ прозрачный процесс deploy, все знают, когда произошел deploy - атомарно всё
 				+ легко добавлять новые apps (lxc-контейнеры)
-			- только до определенных масштабов - далее деградация по разработке
-			- с ростом сложности (base complexity) деградирует продуктивность
-  			- закон общин "общее благо быстро истощается"
-				- некоторые приемы обходятся дорого
-			- быстрые эксперименты не сделать хорошо в монолите (быстро проверить гипотезу, большой PR, много blame). Замедление роста компании.
-			- разграничение доступа. разные code style, куда можно, нельзя коммитить
-			- тяжелая dev-среда (локальная разработка)
-			- flaky функционал, если делать deadline таймауты
+			- минусы:
+				- только до определенных масштабов - далее деградация по разработке
+				- с ростом сложности (base complexity) деградирует продуктивность
+  				- закон общин "общее благо быстро истощается"
+					- некоторые приемы обходятся дорого
+				- быстрые эксперименты не сделать хорошо в монолите (быстро проверить гипотезу, большой PR, много blame). Замедление роста компании.
+				- разграничение доступа. разные code style, куда можно, нельзя коммитить
+				- тяжелая dev-среда (локальная разработка)
+				- flaky функционал, если делать deadline таймауты
+				- сложно расширять стек технологий
 			- пример с SSR:
-					1) из php кода curl www.avito.st по известному адресу
-					2) lb -> avi-http-> ssl -> app-nginx -> firewall -> monolith -> lb (!!!) -> avi-http -> ...
-					3) стало x2, сами себя за DDoS-или
-					4) быстрофикс -> /etc/hosts -> relative path
-			- сложно расширять стек технологий
+                1) из php кода curl www.avito.st по известному адресу
+                2) lb -> avi-http-> ssl -> app-nginx -> firewall -> monolith -> lb (!!!) -> avi-http -> ...
+                3) стало x2, сами себя за DDoS-или
+                4) быстрофикс -> /etc/hosts -> relative path
 	- микросервисы
 		- service mesh
-		- каждая команда независимо работает	
+		- каждая команда независимо работает
 		- API Gateway
 			- роутит трафик "куда надо"
 			- изолирует проекты друг от друга
@@ -89,18 +91,18 @@
 			- определить конечную цель распила монолита
 			- не делать циклические походы
 		- шаги
-				1) SSR, мобильная версия - адаптер перед монолитом
-				2) m.avito.ru -> mobile api -> меньше аварий
-				3) дублирование правил iptables/firewall по горизонтали для разных точек входа
-				4) отдельный endpoint для recommendation (python)
-				5) продолжаем копипастить middleware (oauth, например)
-				6) делаем единый API Gateway ( nginx + lua )
-				- LaaS
-				- oauth (session, security, flags etc.)
-				- защита от подделок http header (x-user-id)
-				- метрики
-				- ... middleware
-				- искусственное ограничение, чтобы не писать бизнес-логику в gateway
+            1) SSR, мобильная версия - адаптер перед монолитом
+            2) m.avito.ru -> mobile api -> меньше аварий
+            3) дублирование правил iptables/firewall по горизонтали для разных точек входа
+            4) отдельный endpoint для recommendation (python)
+            5) продолжаем копипастить middleware (oauth, например)
+            6) делаем единый API Gateway ( nginx + lua )
+            - LaaS
+            - oauth (session, security, flags etc.)
+            - защита от подделок http header (x-user-id)
+            - метрики
+            - ... middleware
+            - искусственное ограничение, чтобы не писать бизнес-логику в gateway
 		- есть другие api-gateway из под коробки:
 			- The Kong Way (https://github.com/Kong/kong)
 			- https://github.com/devopsfaith/krakend
