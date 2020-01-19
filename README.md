@@ -12,3 +12,7 @@ Theory and practice around software engineering fundamentals
 
 ### Intuit
 [POSIX Programming](intuit/posix)
+
+### MailRu TechStream
+
+[Linux Administration Basics](mailru/linux)
