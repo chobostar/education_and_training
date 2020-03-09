@@ -16,3 +16,7 @@ Theory and practice around software engineering fundamentals
 ### MailRu TechStream
 
 [Linux Administration Basics](mailru/linux)
+
+### Books
+
+[Clean Architecture](books/clean_archicture)
