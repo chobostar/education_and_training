@@ -10,6 +10,8 @@ Theory and practice around software engineering fundamentals
 
 [Data Structures](coursera/datastructures)
 
+[Google Cloud Platform Fundamentals: Core Infrastructure](coursera/gcp_fundamentals)
+
 ### Intuit
 [POSIX Programming](intuit/posix)
 
