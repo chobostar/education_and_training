@@ -12,6 +12,8 @@ Theory and practice around software engineering fundamentals
 
 [Google Cloud Platform Fundamentals: Core Infrastructure](coursera/gcp_fundamentals)
 
+[Reliable Google Cloud Infrastructure: Design and Process](coursera/gcp_rdp)
+
 ### Intuit
 [POSIX Programming](intuit/posix)
 
