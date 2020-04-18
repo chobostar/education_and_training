@@ -14,6 +14,8 @@ Theory and practice around software engineering fundamentals
 
 [Reliable Google Cloud Infrastructure: Design and Process](coursera/gcp_rdp)
 
+[Go Web Development - The Basics of the Language](coursera/golang-webservices-1)
+
 ### Intuit
 [POSIX Programming](intuit/posix)
 
