@@ -16,6 +16,8 @@ Theory and practice around software engineering fundamentals
 
 [Go Web Development - The Basics of the Language](coursera/golang-webservices-1)
 
+[Architecting with GKE: Foundations](coursera/gke_foundations)
+
 ### Intuit
 [POSIX Programming](intuit/posix)
 
