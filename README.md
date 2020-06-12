@@ -18,6 +18,8 @@ Theory and practice around software engineering fundamentals
 
 [Architecting with GKE: Foundations](coursera/gke_foundations)
 
+[Architecting with GKE: Workloads](coursera/gke_workloads)
+
 ### Intuit
 [POSIX Programming](intuit/posix)
 
