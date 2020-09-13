@@ -1,0 +1,248 @@
+https://www.youtube.com/watch?v=YsQAAaNpw6Y
+
+Технологии ограничений
+ - cgroups
+ - namespaces
+ - union mount
+ - capabilities
+ - seccomp
+ - MAC
+
+Cgroups
+ - Cgroups v1 - kernel 2.6.24
+ - Cgroups v2 - kernel 4.5
+
+Состоит из
+ - ядра (cgroup core)
+ - подсистем (subsystems)
+
+Создается виртуальная файловая система на диске (как /proc) - туда монтируются директории
+Процесс можно поместить внутрь /cg1 и на него наложаться все те, ограничения которые выставили для cgroup
+
+Subsystems (cgroups v1) - что позволят ограничивать:
+ - cpu       - blkio
+ - cpuacct   - perf_event
+ - cpuset    - net_prio
+ - memory    - hugetlb
+ - devices   - pids
+ - freezer   - rdma
+ - net_cls
+
+Можно посмотреть:
+ - /proc/cgroups
+ - /sys/fs/cgroup/
+ - /proc/<pid>/cgroup
+
+Управление cgroups
+ - ручное управление
+     $ mount -t cgroup -o cpu none /sys/fs/cgroup/cpu
+     $ mkdir /sys/fs.cgroup/cpu/cg1
+     $ echo $$ > /sys/fs.cgroup/cpu/cg1/cgroup.procs
+ - libcgroup
+ - cgmanager
+ - systemd
+ - container-specific
+
+Cgroups v2
+Поддерживаются не все подсистемы, которы есть в cgroups v1
+- Единая иерахия
+$ mount -t cgroups -o cpu none /sys/fs/cgroup/cpu
+- cgroup.controllers
+- cgroup.substee_control
+$ echo '+pids -memory' > /x/y/cgroup.subtree_control
+- все thread-ы процесса должны быть в одной cgroup
+- cgroup с процессами не может иметь вложенных cgroup
+- но есть thread mode (можно ограничивать треды)
+
+
+Namespaces
+дает процессам иллюзию, что они имеют свои собственные ресурсы.
+
+chroot
+- меняет корневую директорию вызывающего процесса
+- не меняет текущую рабочую директорию
+- не закрывает файловые дескрипторы 
+- не предназначен для безопасности
+
+mount,ipc,uts,pid,network,user,cgroup
+
+Namespace API
+- clone - новый процесс с новыми namespaces
+- setns - присоединяет вызывающий процесс к существующему namespace. Userspace: nsenter
+- /proc/[pid]/ns
+- unshare - перемещает вызывающий процесс в новый namespace. Userspace: unshare
+
+pivot_root
+- меняет корневую директорию процесса
+- меняет корневую файловую систему процесса
+$ mount /dev/hda1 /new-root
+$ cd /new-root
+$ pivot_root . old-root
+$ exec chroot . sh <dev/console >dev/console 2>&1
+$ unmount /old-root
+
+
+IPC namespace
+Изолирует
+- shared memory
+- semaphore
+- message queues
+- /proc/sys/fs/mqueue
+- Часть файлов из /proc/sys/kernel
+- /proc/sysvipc
+
+UTS namespace
+Изолирует:
+- nodename (hostname)
+- NIS domain name
+
+PID namespace
+/proc/[pid]/ns/pid
+/proc/[pid]/ns/pid_for_children
+
+Network namespace
+Изолирует:
+- сетевые устройства
+- стеки IPv4, IPv6
+- таблицы маршрутизации
+- правила фаервола
+- /proc/net
+- veth позволяет создать туннель между двумя namespace
+
+User namespace
+- можно создавть с правами обычного пользователя
+Изолирует:
+- UIDs, GIDs
+- root directory
+- keyrings
+- capabilities
+ 
+- /etc/subuid и /etc/subgid
+- /proc/sys/kernel/overflowuid и /proc/sys/kernel/overflowgid
+- /proc/[PID]/uid_map и /proc/[PID]/gid_map
+
+
+Cgroup namespace
+- Изолирует корень иерархии/делает текущее место корнем в иерархии
+- /proc/[pid]/cgroup и /proc/[pid]/mountinfo
+
+---
+summary:
+ - cgroups - изолировать процесс про ресурсам
+ - namespaces - ограничинить видимость от других структур ядра, от других процессов, сетей
+
+---
+Union mount
+
+docker overlay fs
+накладывает слои директории
+
+каждый образ состоит из нескольких слоев, всё кроме верхнего слоя RO, это позволяет запускать несколько контейнеров на одном образе. Файл ищется сверху вниз (если он есть в обоих берется только с верхнего). Слои переиспользуются - занимают меньше места.
+/var/lib/docker/overlayfs
+
+
+Capabilities
+Попытка разобрать класс root-a на кусочки, чтобы их можно было гранулированно делегировать
+- атрибут thread-a
+- /proc/sys/kernel/cap_last_cap - число capabilities
+
+Capability Sets
+набор привелегий процесса/файла
+- permitted
+- inheritable
+- effective
+- ambient (4.3, только для процессов)
+- bounding
+
+Capability Hardening
+- capabilites на файлах доступны всем пользователям
+prctl:
+- SECBIT_NOROOT(_LOCKED)
+- SECBIT_NO_SETUID_FIXUP(_LOCKED)
+- PR_SET_NO_NEW_PRIVS(docker и lxc support)
+
+Seccomp
+Ограничение набора системных вызовов
+Используется в:
+- Chrome OS
+- Android
+- FireFox и Chromium
+- Vsftpd
+- Openssh
+- Docker и LXC
+
+Три режима:
+- SECCOMP_MODE_STRICT
+- SECCOMP_MODE_FILTER
+- SECCOMP_GET_ACTION_AVAIL
+Включается через:
+- prctl (PR_SET_SECCOMP, SECCOMP_MODE_FILTER, args)
+- seccomp (SECCOMP_SET_MODE_FILTER, 0 , &prog)
+
+Berkeley Packet Filter
+- использует VM внутри ядра
+- сделан для tcpdump
+- снижает количество перехода из режима ядра в пользовательский режим
+
+Возможные действия
+/proc/sys/kernel/seccomp/{actions_avail,actions_logged}
+- SECCOMP_RET_KILL_THREAD (SECCOMP_RET_KILL)
+- SECCOMP_RET_ALLOW
+- SECCOMP_RET_TRAP
+- SECCOMP_RET_ERRNO
+- SECCOMP_RET_TRACE
+- SECCOMP_RET_LOG
+- SECCOMP_RET_KILL_PROCESS
+
+Недостатки
+- сложноость написания bpf-программ (но есть libseccomp)
+- паднеие производительности (можно ускорить с помощью JIT compiler)
+- blacklist vs whitelist
+
+(docker использует blacklist)
+
+
+Mandatory Access Control (MAC)
+- SELinux
+- AppArmor
+
+
+Угроза контейнеризации
+контейнеры не существуют в изоляции 
+
+на каждом этапе есть свои угрозы
+- образ (файловая система)
+- хранилище
+- оркестрация
+- контейнер (запущенный образ)
+- хост
+
+Риски для образа
+- уязвимости в самом образе
+- некорректная конфигурация
+- встроенные секреты
+- использование недоверенный образов
+
+Риски для реестра
+- незащиенное соединение с реестром
+- необновленные образы
+- проблемы с аутентификацией и авторизацией
+
+Риски для оркестрации
+- отсутствие разраничения доступа
+- отсутсвтие сетевой сегментации между контейнерами
+- "соседство" контейнеров разного уровня критичности
+- доверительные отношения между узлами оркестратора
+
+Риски для контейнеров
+- уязвимости в программах/приложениях
+- исходлящие соединения
+- некорректная конфигурация контейнеров
+- посторонние контейнеры
+
+Риски для хоста
+- Увеличение поверхности атаки
+- Общее ядро
+- Уязвимости в программах самого хоста
+- Некорректное разграничение прав доступа на самом хосте
+- Доступ к ФС из контейнеров
