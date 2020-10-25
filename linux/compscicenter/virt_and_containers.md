@@ -245,11 +245,101 @@ $ cgexec -g memory:/mycgroup google-chrome
 - cpuset. cpu_exclusive - флаг эксклюзивного использования процессора группой
 - cpuset.sched_laod_balance + cpuset.sched_relax_domain_level - управление балансировокой нагрузки в группе 
 
-### Контроллер cpu
+#### Контроллер cpu
 - Назначение: управление распределением нагрузки на процессоры
 - cpu.shared - для использования процессора по отношению к друугим группам
 - cpu.rt_runtime_us - максимальный период монопольного использования процессора в микросекундах
 - cpu.rt_period_us - максимальное время ожидания процессора группой
 
-### Контроллер cpuaccts
-https://youtu.be/rJRLZfk3a8U?list=WL&t=5115
+#### Контроллер cpuaccts
+Сбор статистики по использованию процессора
+- cpuacct.stat - число циклов процессора
+- cpuacct.usage - суммарное время
+- cpuacct.usage_percpu - число циклов процессора, включая задания подгрупп
+
+#### Контроллер devices
+Управление доступом к устройствам из группы
+- devices.allow - устройства доступные группе
+- devices.deny - запрещенные устройства в группе
+- devices.list - просмотр устройств в whitelist
+(просто вайтлист/блэклист доступных устройств)
+
+#### Контроллер freezer
+Заморозка/разморозка исполнения группы процессов
+- freezer.state - состояние заморозки
+    - FROZEN - задание приостановлено
+    - FREEZING - в стадии приостановки (включая группы-потомки)
+    - THAWED - возобновление работы
+- freezer.self_freezing собственное состояние заморозки
+- freezer.parent_freezing родительское состояние заморозки
+
+#### Контроллер memory
+Управление и мониторинг использования памяти
+- memory.stat - получения статистики по использованию памяти
+    - total_ - текущая группа и подгруппы
+- memory.[memsq.]usage_in_bytes - используемая память в байтах (в подкачке)
+- memory.[memsw.]limit_in_bytes
+- memory.[memsw.]failcnt - счетчик числа достижений лимита памяти
+- memory.oom_control - флаг разрешения OOM-killer
+(*) - memory.soft_limit_in_bytes - флаг разрешения OOM-killer
+
+#### Контроллер blkio
+- blkio.weight - [100-1000], относительный вес ввода вывода в группе
+- blkio.time - время доступа в ввода-вывода в группе
+- blkio.sectors - количество перемещенных между устройствами секторов в группе
+- blkio.io_service_bytes - количество перемещенных между устройствами байт в группе
+- blkio.io_service_time - время между выдачей запроса и его завершением
+- blkio.io_queued - число запросов в очереди ввода вывода группы
+
+
+Итого, есть namespace/cgroups и есть разные инструменты, которые ими управляют - например, lxc, docker.
+
+### VM vs containers
+
+vm:
+- hardware
+- host os
+- hypervisor
+- guest os
+- bins/libs
+- app
+
+containers:
+- hardware
+- host os
+- bins/libs/apps
+
+### Миссия
+docker:
+- простой и легковесный путь от модели к реальности
+- минимизация риска падения приложений при переносе из окружения разработки в "боевые условия"
+- ускорение code->test->deploy->use
+
+### Базовые механизмы Linux
+разные системы виртуализации:
+- libcontainer
+- libvirt
+- lxc
+- systemd-nspawn
+
+которые предоставляют интерфейс к cgroups, namespaces, ...
+
+Технические компоненты Docker:
+- libcontainer format
+- kernel namespaces
+    - fs isolation
+    - process isolation
+    - network isolation
+- CoW FS
+- логирование stdout/stdin/stderr
+- cli
+- gui (сторонние разработки)
+
+Контейнер Docker:
+- формат образа
+- набор стандартных операций
+- исполнительная среда
+
+
+## Links
+- https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux/7/html/resource_management_guide/index
