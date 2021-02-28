@@ -66,5 +66,39 @@ cgroups - ограничивает объем ресурсов, которые �
 - Автоматическое масштабироваие
 - Упрощение разработки приложений
 
+## Глава 2. Первые шаги с Docker и Kubernetes
 
+#### docker commands
+```
+$ docker build -t kubia .
+$ docker run --name kubia-container -p 8080:8080 -d kubia
+$ curl localhost:8080
+$ docker ps
+$ docker inspect kubia-container
+$ docker exec -it kubia-container bash
+$ docker stop kubia-container
+$ docker rm kubia-container
+$ docker tag kubia somename/kubia
+$ docker push somename/kubia
+```
 
+#### k8s commands
+```
+$ minikube start
+$ kubectl cluster-info
+$ kubectl get nodes
+$ kubectl describe node minikube
+$ kubectl run kubia --image=somename/kubia --port=8080 --generator=run/v1
+$ kubectl get pods
+$ kubectl expose rc kubia --type=LoadBalancer --name kubia-http
+$ minikube serivce kubia-http
+$ kubectl get services
+$ kubectl get svc
+$ kubectl get replicationcontrollers
+$ kubectl scale rc kubia --replicas=3
+$ kubectl get rc
+$ kubectl get pods
+$ kubectl get pods -o wide
+$ kubectl describe pod <podname>
+$ minikube dashboard
+```
