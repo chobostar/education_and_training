@@ -27,6 +27,10 @@ Theory and practice around software engineering fundamentals
 
 [Linux Administration Basics](mailru/linux)
 
+### Slurm
+
+[K8s base](slurm/k8s_base)
+
 ### Books
 
 [Clean Architecture](books/clean_archicture)
