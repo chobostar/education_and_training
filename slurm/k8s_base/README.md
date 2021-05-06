@@ -287,3 +287,99 @@ local dns cache общается с coredns через CoreDNS ClusterIP (iptabl
 "pods verify k8s authpath coredns"
 
 headless сервис позволяет обратится к поду, например для StatefulSet-ов.
+
+
+---
+Темплэйтирование
+- Sed / Envsubst
+- Ansible
+- Kubectl based (если возникает ошибка, undo работает наботает только на deployment-ах, она не будет откатывать изменения в servicах, configmapах и т.д.
+
+)
+- Helm (cжимает, base64 и хранит манифесты в секретах)
+
+
+Время, которое дается deployment'у на успешное завершение обновления контролируется с помощью параметра  progressDeadlineSecond в описании deployment'а и по умолчанию = 600 секундам.
+
+$ kubectl rollout status deployment test || kubectl rollout undo deployment test
+
+Почему Helm?
+- "пакетный менеджер" (по другому работает с зависимостями - все равно ставит)
+- CNCF
+- декларативный
+- Состоит из Helm + Tiller (в v2)
+- есть важные фичи для построения CD
+	- watch
+	- rollback
+- система плагинов (например переезд с v2 в v3, или helm-монитор - контролировать 500-ки)
+
+Пакет (chart-ы) (.tgz)
+- набор template manifest
+- файл с values
+- мета
+
+используется go template
+
+$ helm ls --all-namespaces
+
+$ helm repo add stable https://charts.helm.sh/stable
+$ helm inspect values stable/kube-ops-view > values.yaml
+$ helm install kube-ops-view stable/kube-ops-view --namespace kube-system -f values.yaml
+
+$ helm create test-chart
+
+Тестирование релиза:
+1. создаем папку templates/tests/
+2. кладем туда манифесты объектов k8s которые будут тестить релиз
+3. манифесты должны содержать аннотакцию helm,.sh/hook: test
+4. запускаем в CI helm test <release name>
+
+
+Подключение хранение данных
+- Storage class: хранит параметры подключения
+- PersistanceVolumeClaim описывает требования к тому
+- PersistanceVolume хранит параметры и статус тома
+- Provisioner параметры SC, плагин создания томов
+
+Container Storage Interface - унифицированный интерфейс хранилищ
+
+node plugin - запущен на каждом узле
+controller plugin - взаимодействие с хранилищем
+
+Ceph CSI
+- dymanically provision RWO and RWX mode
+- snapshot
+- resize
+- quota
+- metrics
+- topology aware
+
+---
+$ echo "172.26.108.6:6789:/ /mnt/cephfs ceph name=admin,secretfile=/etc/ceph/secret.key,noatime,_netdev 0 2">>/etc/fstab
+
+
+$ getfattr -n ceph.quota.max_bytes /mnt/cephfs/volumes/csi/csi-vol-17f86edb-ae3a-11eb-97e1-da9c18118f93/0fa4ea05-1508-4fb6-a2b1-1ddba2aebb64/
+---
+
+Cert-manager
+- начинался каак способ получить сертификат от LetsEncrypt
+- автоматизирует получение SSL/TLS-сертификатов от различных удостоверяющих центров (LetsEncrypt, selfhosted, selfsigned)
+- интегрируется с ингресс-контроллеров
+- автоматизирует продление сертификатов
+- CRD: Issuer, ClusterIssuer, Certificate, Order, Challenge
+- RBAC: certmanager.k8s.io
+
+---
+Этапы CI/CD
+- build
+- test
+- clean up
+- push
+- deploy
+
+
+$ kubectl create secret docker-registry xpaste-gitlab-registry --docker-server registry.slurm.io --docker-email 'student@slurm.io' --docker-username 'gitlab+deploy-token-1859' --docker-password '_RGgBmcR4tExztXJEs2f' --namespace s013939-xpaste-production
+
+$ helm install postgresql ~/slurm/practice/9.ci-cd/9.5.deploy/5.1.prepare_cluster/postgresql --namespace s013939-xpaste-production --atomic --timeout 120s
+
+$ kubectl create secret generic slurm-xpaste --from-literal secret-key-base=xxxxxxxxxxxxxxxxxxxxxxxxx --from-literal db-user=postgres --from-literal db-password=postgres --namespace s013939-xpaste-production
