@@ -349,7 +349,6 @@ kubeadm alpha certs renew all
 controller-manager.conf
 scheduler.conf
 admin.conf
----
 
 
 
