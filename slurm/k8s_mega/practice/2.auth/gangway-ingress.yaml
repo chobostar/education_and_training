@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gangway
+  namespace: kube-system
+spec:
+  rules:
+  - host: kubectl.s<Ваш номер логина>.edu.slurm.io
+    http:
+      paths:
+      - backend:
+          serviceName: gangway-svc
+          servicePort: http
+  tls:
+  - secretName: gangway-tls
+    hosts:
+    - kubectl.s<Ваш номер логина>.edu.slurm.io

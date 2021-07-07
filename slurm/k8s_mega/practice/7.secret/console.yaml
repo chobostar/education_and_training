@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault-console
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault-console
+  template:
+    metadata:
+      labels:
+        app: vault-console
+    spec:
+      containers:
+      - name: valult
+        image: vault
+        command: ["sh", "-c", "echo going to sleep... && sleep 10000"]
+        env:
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault-unseal-keys
+              key: vault-root
+        - name: VAULT_SKIP_VERIFY
+          value: 'true'
+        - name: VAULT_ADDR
+          value: https://vault:8200

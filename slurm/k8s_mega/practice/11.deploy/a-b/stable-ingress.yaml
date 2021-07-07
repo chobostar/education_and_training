@@ -1,0 +1,13 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: myingress-stable
+spec:
+  rules:
+    - host: nginx.s<номер своего логина>.edu.slurm.io
+      http:
+        paths:
+          - backend:
+              serviceName: myapp-stable
+              servicePort: 80

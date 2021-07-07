@@ -1,0 +1,14 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: hpa-v2-test
+spec:
+  rules:
+  - host: hpa-v2-test.s<Ваш номер студента>.edu.slurm.io
+    http:
+      paths:
+      - backend:
+          serviceName: hpa-v2-test
+          servicePort: 80
+...

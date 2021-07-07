@@ -1,0 +1,7 @@
+#!/bin/sh
+
+kubeadm alpha kubeconfig user --client-name kubernetes-admin --org system:masters > /etc/kubernetes/admin.conf
+kubeadm alpha kubeconfig user --client-name system:kube-scheduler  > /etc/kubernetes/scheduler.conf
+kubeadm alpha kubeconfig user --client-name system:kube-controller-manager > /etc/kubernetes/controller-manager.conf
+
+kubeadm alpha kubeconfig user --client-name system:node:kube.s000000.slurm.io --org system:nodes > /etc/kubernetes/kubelet.conf
