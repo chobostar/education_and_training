@@ -1,0 +1,339 @@
+https://github.com/killer-sh/cks-course-environment
+
+- Security combines many different things
+- Env change security cannot stay in a certain stage
+- Attackers have advantage
+  - they decide time
+  - they pick what to attack, like weakest link
+
+Principles
+- Defense in Depth
+- Least Privilege
+- Limiting the Attack Surface
+
+Redundancy is good... in security.
+
+Host OS Sec:
+- k8s node should only do one thing k8s
+- reduce attack surface
+  - remove unnecessary applicatios
+  - keep up to date
+- runtime security tools
+- find and indentify malicous processes
+- restrict iam/ssh access
+
+
+Application security:
+- use secrets / no hardcoede credentials
+- RBAC
+- Container Sandboxing
+- Container Hardening
+  - Attack surface
+  - Run as user
+  - Readonly filesystem
+- Vulnerability Scanning
+- mTLS / ServiceMeshes
+
+https://www.youtube.com/watch?v=wqsUfvRyYpw
+
+
+https://console.cloud.google.com/
+
+$ gcloud compute ssh cks-master
+$ gcloud compute ssh cks-worker
+$ gcloud compute instances stop cks-master
+$ gcloud compute instances stop cks-worker
+
+# All You Need to Know About Certificates in Kubernetes
+https://www.youtube.com/watch?v=gXz4cq3PKdg
+
+# Kubernetes Components
+https://kubernetes.io/docs/concepts/overview/components
+
+# PKI certificates and requirements
+https://kubernetes.io/docs/setup/best-practices/certificates
+
+Container
+- collection of one or multiple applications
+- includes all its dendendencies
+- just a process runs on the linux kernel
+
+
+User Space(Application, Libraries) - Kernel Space (Syscall Interface, Linux Kernel) - Hardware
+
+Namespaces isolate processes:
+- PID
+- Mount
+- Network
+- User
+
+
+# What have containers done for you lately?
+https://www.youtube.com/watch?v=MHv6cWjvQjM
+
+
+Network policies also applies to DNS resolution
+
+---
+Ingress
+
+Pod nginx
+create nginx config comfortable via K8s yaml resources
+
+$ kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.47.0/deploy/static/provider/baremetal/deploy.yaml
+$ k create secret tls secure-ingress --cert=cert.pem --key=key.pem
+$ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+
+$ curl https://secure-ingress.com:31837/service2 -kv --resolve secure-ingress.com:31837:34.118.99.111
+
+---
+CIS Benchmarks
+
+google.com -> cis benchmarks kubernetes
+
+https://www.cisecurity.org/benchmark/kubernetes/
+
+
+https://github.com/aquasecurity/kube-bench/blob/main/docs/running.md
+
+$ docker run --pid=host -v /etc:/etc:ro -v /var:/var:ro -t aquasec/kube-bench:latest --version 1.21
+
+https://cloud.google.com/kubernetes-engine/docs/concepts/cis-benchmarks
+
+# talk about CIS
+https://www.youtube.com/watch?v=53-v3stlnCo
+
+https://github.com/docker/docker-bench-security
+---
+
+extract files from container there is no sh/bash:
+
+$ docker ps | grep apiserver
+f9721d3bd414   4d217480042e             "kube-apiserver --ad…"   2 hours ago   Up 2 hours             k8s_kube-apiserver_kube-apiserver-cks-master_kube-system_e7941a0523b7b0cb6f62e129716d9db3_0
+a5ca127fbb6a   k8s.gcr.io/pause:3.4.1   "/pause"                 2 hours ago   Up 2 hours             k8s_POD_kube-apiserver-cks-master_kube-system_e7941a0523b7b0cb6f62e129716d9db3_0
+
+$ docker cp f9721d3bd414:/ container-fs
+
+$ sha512sum ...
+---
+
+RBAC
+
+specify what is allowed
+
+resources:
+- namespaced ($ kubectl api-resources --namespaced=true)
+- non-namespaced ($ kubectl api-resources --namespaced=false)
+
+
+ClusterRole
+ClusterRoleBinding
+be careful - they apply to all current and future namespaced and non-namespaced resources
+
+permissions are additive
+
+always test your rbac roles:
+$ kubectl auth can-i delete deployment --as jane -A
+
+Account:
+- serviceacccount (there is a serviceaccount resource, managed by the k8s api)
+- normal user (there is no k8s user resource, it is assumed that a cluster-independent service manages normal users)
+
+There is no way to invalidate a certifacate
+If a certificate has been leaked:
+- remove all access via RBAC
+- username cannot be used until cert expired
+- create new CA and re-issue all certs (!!!)
+
+$ k config set-credentials jane --client-key=jane.key --client-certificate=jane.crt
+$ k config set-credentials jane --client-key=jane.key --client-certificate=jane.crt --embed-certs
+
+$ k config set-context jane --user=jane --cluster=kubernetes
+$ k config use-context jane
+
+---
+serviceaccount
+
+automountServiceAccountToken: false
+---
+request flow (from human user, or pod sa):
+- authentication (who are you?)
+- authorization (are you allowd to create pod?)
+- admission control (has the limit of pods been reached?)
+
+restrictions:
+- don't allow anonymous access 
+- close incsecure port
+- don't expose apisercer to the outside
+- restrict access from Nodes to API (NodeRestriction)
+- prevent unathorized access (RBAC)
+- prevent pods from accessing API
+- apiserver port behind firewall / allowed ip ranges (cloud provider)
+
+enable/disable anon access:
+kube-apiserver --anonymous-auth=false
+
+
+kubectl request -> https -> api server
+
+insecure access
+
+enable insecure port (impossible to set!):
+$ docker logs 7294d704a6b9
+Flag --insecure-port has been deprecated, This flag has no effect now and will be removed in v1.24.
+Error: invalid port value 8080: only zero is allowed
+
+how to manual request:
+echo "base64 -d"-ed cert to ca, crt, key then execute:
+$ curl https://10.186.0.4:6443 --cacert ca --cert crt --key key
+
+external api server access:
+$ k edit svc kubernetes
+
+set svc from ClusterIP to NodePort, then try remote access:
+$ kubectl --kubeconfig trash/conf get pods
+Unable to connect to the server: x509: certificate is valid for 10.96.0.1, 10.186.0.4, not 34.118.123.75
+
+add entry for /etc/hosts and fix your kubeconfig
+
+NodeRestriction
+Admission Controller:
+- kube-apiserver --enable-admission-plugins=NodeRestriction
+- Limits the Node labels a kubelet can modify
+
+Ensure secure workload isolation via labels:
+- No one can pretend to be a "secure" node and schedule secure pods
+
+kube-apiserver --enable-admission-plugins=NodeRestriction
+
+on worker node:
+$ export KUBECONFIG=/etc/kubernetes/kubelet.conf
+
+root@cks-worker:~# k label node cks-worker cks/test=yes
+node/cks-worker labeled
+root@cks-worker:~# k label node cks-worker node-restriction.kubernetes.io/test=yes
+Error from server (Forbidden): nodes "cks-worker" is forbidden: is not allowed to modify labels: node-restriction.kubernetes.io/test
+
+so protected prefix is "node-restriction.kubernetes.io/"
+---
+Update Kubernetes:
+- support
+- security fixes
+- bug fixes
+- stay up to date for dependencies
+
+How to upgrade a cluser:
+- First upgtade the master components
+- Then the worker components
+- Components same minor version as apiserver
+
+1. kubectl drain
+2. do the upgrade
+3. kubectl uncordon
+
+- Pod gracePeriod / Terminating state
+- Pod Lifecycle Events
+- PodDisruptionBudget
+---
+Manage k8s secrets
+
+https://kubernetes.io/docs/concepts/configuration/secret/#using-secrets-as-environment-variables
+
+$ docker inspect d13bdfab252c | grep -i password
+$ docker ps d13bdfab252c:/etc/secret1 secret1
+
+$ ETCDCTL_API=3 etcdctl ... endpoint health
+$ ETCDCTL_API=3 etcdctl ... get /registry/secrets/default/secret2
+$ ETCDCTL_API=3 etcdctl ... get /registry/secrets/default/secret1
+
+encrypt etcd
+--encryption-provider-config
+kind: EncryptionConfiguration
+
+$ cat /etc/kubernetes/pki/etcd/enc.conf 
+apiVersion: apiserver.config.k8s.io/v1
+kind: EncryptionConfiguration
+resources:
+  - resources:
+    - secrets
+    providers:
+    - aescbc:
+        keys:
+        - name: key1
+          secret: 4beqm7YvYqwehRpTzeIacTbdX9le857/vr2qkyEN9Vk=
+    - identity: {}
+
+$ kubectl get secrets --all-namespaces -o json | kubectl replace -f -
+
+$ k -n kube-system exec etcd-cks-master -- etcdctl --cert=/etc/kubernetes/pki/etcd/peer.crt --key=/etc/kubernetes/pki/etcd/peer.key --cacert=/etc/kubernetes/pki/etcd/ca.crt get /registry/secrets/default/secret1 | hexdump -C
+
+https://kubernetes.io/docs/concepts/configuration/secret/#risks
+https://www.youtube.com/watch?v=f4Ru6CPG1z4
+https://www.cncf.io/webinars/kubernetes-secrets-management-build-secure-apps-faster-without-secrets
+---
+
+Container Runtime Sandboxes
+
+sandbox ?
+- playground when implementing an API
+- simulated testing environment
+- development server
+- security layer to reduce attack surface
+
+container -> system calls -> kernel -> hardware
+container -> sandbox -> system calls -> kernel -> hardware
+
+sandbox comes not for free:
+- more resources
+- might be better for smaller containers
+- not good for syscall heavy workloads
+- no direct access to hardware
+
+"dirty cow" exploit
+
+OCI - Open Container Initiative
+- OCI
+- LF project to design open standarts for virtualization
+- Specification
+  - runtime
+  - image
+  - distribution
+- Runtime
+  - runc
+
+$ crictl -h
+
+katacontainer - additional isolation with a lightweight VM and individual kernels:
+- strong separation layer
+- runs every container in its own private VM (hypervisor based)
+- QEMU as default
+  - needs virtualisation, like nested
+
+gVisor - user-space kernel for containers
+- another layer of separation
+- NOT hypervisor/VM based
+- simulates kernel syscalls with limited functionality
+- runtime called runsc
+
+different output: "$ dmesg -T"
+
+---
+OS Level Security Domains
+
+Define privilege and access control for Pod/Container:
+- userID and groupID
+- Run privileged or unprivileged
+- Linux Capabilities
+
+Privileged means that container user 0 (root) is directly mapped to host user 0 (root)
+
+PodSecurityPolicy
+kube-apiserver --enable-admission-plugins=PodSecurityPolicy
+
+allow default sa to see psp !!!
+
+$ kubectl create role psp-access --verb=use --resource=podsecuritypolicies
+
+Open Policy Agent - more flexible than PSP
+
+
