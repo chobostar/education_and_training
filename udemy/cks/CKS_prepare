@@ -335,5 +335,359 @@ allow default sa to see psp !!!
 $ kubectl create role psp-access --verb=use --resource=podsecuritypolicies
 
 Open Policy Agent - more flexible than PSP
+---
+
+mTLS
+
+proxy side-container needs pod capabilites:
+    securityContext:
+      capabilities:
+        add: ["NET_ADMIN"]
+---
+Open Policy Agent
+
+custom policies
+
+- Not k8s specific
+- easy implementation of policies (Rego langauge)
+- Works with JSON/YAML
+- In k8s it uses Admission Controllers
+- Does not know concepts like pods or deployments
+
+OPA Gatekeeper - provides k8s CRDs
+
+- contraint template
+- contraint (pods must have label X, namespace must have label Y)
+
+install gt:
+kubectl create -f https://raw.githubusercontent.com/killer-sh/cks-course-environment/master/course-content/opa/gatekeeper.yaml
+
+deny all:
+https://github.com/killer-sh/cks-course-environment/tree/master/course-content/opa/deny-all
+
+https://play.openpolicyagent.org/
+
+about OPA:
+https://www.youtube.com/watch?v=RDWndems-sk
+---
+
+Image footprint
+
+multistage containers - image contains only last stage:
+```
+FROM ubuntu
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y golang-go
+COPY app.go .
+RUN CGO_ENABLED=0 go build app.go
+
+FROM alpine
+COPY --from=0 /app .
+CMD ["./app"]
+```
+
+- use specific tags! to increase reliability
+- don't run as root! (RUN addgroup -S appgroup && adduser -S appuser -G appgroup -h /home/appuser; USER appuser)
+- make filesystem read only (RUN chmod a-w /etc)
+- remove shell access (RUN rm -rf /bin/*)
+
+https://docs.docker.com/develop/develop-images/dockerfile_best-practices
+
+---
+Static Analysis
+- always define resource requests and limits
+- pods should never use the default ServiceAccount (depends on)
+
+Kubesec (https://kubesec.io/)
+- security risk analysis for k8s resources
+- opensource
+- opinionated! fixed set of rules (security best practices)
+- run as:
+  - binary
+  - docker container
+  - kubectl plugin
+  - admission controller (kubesec-webhook)
+
+docker run -i kubesec/kubesec:512c5e0 scan /dev/stdin < kubesec-test.yaml
+
+Conftest - OPA
+
+$ docker run --rm -v $(pwd):/project openpolicyagent/conftest test deploy.yaml
+
+$cat policy/deployment.rego 
+# from https://www.conftest.dev
+package main
+
+deny[msg] {
+  input.kind = "Deployment"
+  not input.spec.template.spec.securityContext.runAsNonRoot = true
+  msg = "Containers must not run as root"
+}
+
+deny[msg] {
+  input.kind = "Deployment"
+  not input.spec.selector.matchLabels.app
+  msg = "Containers must provide app label for pod selectors"
+}
+---
+
+Image Vulnerability Scanning
+targets:
+- remotely accessible application in container
+- local application inside container
+
+results:
+- privilege escalation
+- information leaks
+- DDOS
+
+known image vulnerabilities database:
+- https://cve.mitre.org
+- https://nvd.nist.gov
+
+Clair
+- open source project
+- static analysis of vulneratibilites in app containers
+- ingest vulnerability metadata from a configured set of sources
+- provides API
+
+Trivy
+- open source project
+- "a simply and comprehensive vulnerability scanner for containers and other artifacts, suitable for CI"
+- simple, easy and fast
+
+https://github.com/aquasecurity/trivy#docker
+
+$ docker run ghcr.io/aquasecurity/trivy:latest image nginx:latest
+---
+
+Secure Supply Chain
+
+$ k create secret docker-registry my-private-registry ...
+$ k patch serviceaccount default -p '{"imagePullSecrets": [{"name": "my-private-registry"}]}'
+
+$ k get pod -A -o jsonpath='{.items[*].spec.containers[*].image}' | tr ' ' '\n' | sort | uniq
+bash
+docker.io/jettech/kube-webhook-certgen:v1.5.1
+docker.io/weaveworks/weave-kube:2.8.1
+docker.io/weaveworks/weave-npc:2.8.1
+httpd
+k8s.gcr.io/coredns/coredns:v1.8.0
+k8s.gcr.io/etcd:3.4.13-0
+k8s.gcr.io/ingress-nginx/controller:v0.46.0@sha256:52f0058bed0a17ab0fb35628ba97e8d52b5d32299fbc03cc0f6c7b9ff036b61a
+k8s.gcr.io/kube-apiserver:v1.21.0
+k8s.gcr.io/kube-controller-manager:v1.21.0
+k8s.gcr.io/kube-proxy:v1.21.0
+k8s.gcr.io/kube-scheduler:v1.21.0
+nginx
+ubuntu
+
+---
+Behavioral Analytics at host and container level
+
+strace:
+- intercepts and logs system calls made by a process
+- log and display signals received by a process
+- diagnostic, learning, debugging
+
+summary:
+$ strace -cw ls
+
+/proc directory
+
+strace Kubernetes etcd
+
+
+$ cd /proc/$(pgrep etcd)/fd
+$ ls -lh
+$ tail 7
+$ cat 7 | strings | grep '<secret>'
+
+view secrets from env:
+$ pstree -p
+$ cat /proc/5935/environ
+
+Falco - cloud native runtine security (CNCF)
+- Access - deep kernel tracing built on the linux kernel
+- Assert
+  - describe security rules against a system (+ default ones)
+  - detect unwanted behaviour
+- Action
+  - Automated respond to a security violations
+  
+$ tail -f /var/log/syslog | grep falco
+$ k exec -it pod -- bash
+  
+Jul 25 16:53:12 cks-worker falco: 16:53:12.465349379: Notice A shell was spawned in a container with an attached terminal (user=root user_loginuid=-1 k8s_apache_apache_default_ae5acab5-4a1a-421e-b414-2c4f25bdee5f_0 (id=bd15347d8321) shell=bash parent=runc cmdline=bash terminal=34816 container_id=bd15347d8321 image=httpd)
+
+Jul 25 16:54:19 cks-worker falco: 16:54:19.308569457: Error File below /etc opened for writing (user=root user_loginuid=-1 command=bash parent=<NA> pcmdline=<NA> file=/etc/passwd program=bash gparent=<NA> ggparent=<NA> gggparent=<NA> container_id=bd15347d8321 image=httpd)
+
+$ mcedit /etc/falco/falco_rules.yaml
+---
+
+Immutability of containers at runtime
+
+why?
+- advanced deployment methods
+- easy rollback
+- more reliability
+- better security (on container level)
+
+Enforce on container image level
+- remove bash/shell
+- make fs read-only
+- run as user and non root
+
+for example:
+- CMD: chmod a-w -R / && nginx
+- startupProbe: chmod a-w -R /
+- enforce RO root filesystem: using SecurityContexts and PodSecurityPolicies
+
+    startupProbe:
+      exec:
+        command:
+        - rm
+        - /bin/bash
+      initialDelaySeconds: 1
+      periodSeconds: 5
+
+initContainer:
+- read write to cache volume
+
+mount emptyDir for write, use `readOnlyRootFilesystem: true`
+
+$ docker run --read-only --tmpfs /run my-container
+---
+
+Auditing
+
+why?
+- did someone acces an important secret while it was not protected?
+- when was the last time that user X did access cluster Y?
+- does my CRD work properly?
+
+kube-api stages:
+- request received
+- response started
+- response complete
+- panic
+
+kube-apiserver ...
+    - --audit-policy-file=/etc/kubernetes/audit/policy.yaml       # add
+    - --audit-log-path=/etc/kubernetes/audit/logs/audit.log       # add
+    - --audit-log-maxsize=500                                     # add
+    - --audit-log-maxbackup=5                                     # add
+    
+$ cat /etc/kubernetes/audit/policy.yaml 
+apiVersion: audit.k8s.io/v1
+kind: Policy
+rules:
+- level: Metadata
+
+logs:
+$ cat /var/log/pods/
+
+
+to refresh policy, need to stop and start kube-apiserver (not just delete pod)
+---
+
+Kernel Hardening
+
+container isolation
+- namespaces restrictings
+- cgroup limits resources
+
+AppArmor Profile Modes:
+- Unconfined
+- Complain
+- Enforce
+
+$ aa-status
+$ apt-get install apparmor-utils
+$ aa-genprof curl
+
+$ cat /etc/apparmor.d/usr.bin.curl 
+# Last Modified: Mon Jul 26 16:49:20 2021
+#include <tunables/global>
+
+/usr/bin/curl {
+  #include <abstractions/base>
+
+  /lib/x86_64-linux-gnu/ld-*.so mr,
+  /usr/bin/curl mr,
+
+}
+
+$ aa-logprof
+
+$ docker run --security-opt apparmor=docker-nginx nginx
+
+- Container runtime needs to support AppArmor
+- AppArmor needs to be installed on every node
+- AppArmor profiles need to be available on every node
+- AppArmor profiles are specified per container
+  - done using annotations
+
+annotations:  
+  container.apparmor.security.beta.kubernetes.io/<container_name>: localhost/docker-nginx
+  
+Seccomp -> seccomp-bpf
+
+$ docker run --security-opt seccomp=default.json nginx
+
+# syscalls
+https://www.youtube.com/watch?v=8g-NUUmCeGI
+
+# AppArmor, SELinux Introduction 
+https://www.youtube.com/watch?v=JFjXvIwAeVI
+
+---
+Reduce Attack Surface
+
+Application:
+- keep up to date
+- update linux kernel
+- remove not needed packages
+
+Network:
+- check and close open ports
+- network behind firewall
+
+IAM
+- Run as user, not root
+- Restrict user permission
+
+Nodes that run Kubernetes
+- Only purpose: run k8s components
+  - Remove unnecessary services
+- Nodes recycling
+  - Nodes should be ephemeral
+  - Created from images
+  - Can be recycled any time (and fast if necessary)
+
+Linux Distributions:
+- Often include number of services
+- Meant to help, to widen attack surface
+- The more existing and running services, the more convenient (for attacker)
+---
+Reduce Attack Surface
+
+$ systemctl stop snapd
+$ systemctl list-units
+$ systemctl disable snapd
+
+vsftpd
+smbd
+
+prefer use listen only 127.0.0.1 interface
+
+$ netstat -ntlp | grep 21
+$ lsof -i :21
+
+users
+$ cat /etc/passwd
+
+https://itnext.io/cks-exam-series-1-create-cluster-security-best-practices-50e35aaa67ae
+
 
 
