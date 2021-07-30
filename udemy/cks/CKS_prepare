@@ -689,5 +689,10 @@ $ cat /etc/passwd
 
 https://itnext.io/cks-exam-series-1-create-cluster-security-best-practices-50e35aaa67ae
 
-
-
+---
+Revise fo retake:
+- Audit Logs and policy syntax
+- AppArmor
+- https://kubernetes.io/docs/reference/access-authn-authz/admission-controllers/#imagepolicywebhook
+- ImagePolicyWebhook
+- KubeAPI - anonymous access
