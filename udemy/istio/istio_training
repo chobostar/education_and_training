@@ -1,0 +1,16 @@
+What is Istio?
+
+Istio - is a "service mesh".
+
+service mesh, k8s is not enough. Extra layer of software you deploy alongside your cluster (eg K8s)
+
+implements some "mesh logic", telemetry, tracing
+
+istio adds side-car (proxy) into pods with app. iptables configuration.
+
+istio-system namespace. -> single pod istiod (istio daemon) (used to be called "pilot").
+
+proxies are collectively called the "Data plane" in istio.
+istio-system - "control plane". Kiali UI.
+
+---
