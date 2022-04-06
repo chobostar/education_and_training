@@ -217,3 +217,88 @@ Transactions & Exactly Once
 **Траназкции обеспечивают exactly-once только в read-process-write приложениях читающих и пишуших в Кафку**
 
 Чтобы сделать exactly-once в сторонее хранилище нужно хранение offset-ов перенести в это самое хранилище.
+
+Репликация данных:
+- rack awareness
+- хороший default:
+  - min.insync.replicas=2
+    - isr - replica.lag.time.max.ms
+  - replication.factor=3
+
+коммитом считается сообщение записанное во все реплики
+
+Варианты отказа:
+- отказ фолловер-партиции
+  - offset реплицируется с лидера на реплики - last committed offset, high-watermark offset, при падении фолловер транкетить все после lco/hwo и перечитывает все с лидера
+- отказ лидер-партиции
+  - один из брокеров выполняет роль контроллера, подписывается на падения брокеров через zookepeer, получает список лидер партиций находившихся на лидер партиции и назначает новых лидеров
+
+Контроллер:
+- решает задачи по координаций изменений (либо 0, либо 1)
+- создание и удаление партиций
+- вход/выход брокеров
+- подписан на zookeeper
+- уведомляет других брокер
+
+preffered leaders - старые лидеры
+
+controllerEpoch - эпоха, увеличивается при смерти контроллера, монотонно возрастающая
+
+https://www.confluent.io/blog/apache-kafka-supports-200k-partitions-per-cluster/
+
+Настройка числа партиций:
+- не больше 4к партиций на брокер
+- не больше 200к партиций на кластер
+
+Помогает держать нагрузку равномерной
+- auto.leader.rebalance.enable
+- leader.imbalance.check.interval.seconds
+- leader.imbalance.per.broker.percentage
+
+event -> dirty buffer -> disk, защищается через репликацию, а не через fsync:
+- flush.messages
+- flush.ms
+
+защита от шторма коннектов - KIP-402:
+- max.connections
+- max.connections.per.ip
+- max.connection.creation.rate
+
+num.partitions - увеличивает время failover-a
+
+Бэкапы
+- Zookeeper
+  - нересурсоемкие
+    - validate
+- broker-ы
+  - Kafka connect -> s3 sink -> s3 buckets
+    - restore: s3 source connector -> topic
+
+Полезные практики:
+- Disaster recovery plan
+- Disaster tests
+- Runbooks and on-call дежурства
+- Knowledge sharing and bus-factor 2+
+- LSR -> action items
+
+Ограничение одного ДЦ:
+- потеря ДЦ
+- физически ограниченное место для горизонтального роста (нет стоек, нет площадки)
+- не всегда можно соблюсти требования юристов
+
+нужно чтобы бизнес (овнеры) ответил:
+- страшно ли подаунтаймить
+- нужно ли расти дальше
+
+```
+./bin/kafka-run-class.sh org.apache.kafka.tools.ProducerPerformance  \
+--topic=registrations  \
+--num-records=100000000 \
+--throughput=100 \
+--record-size=100 \
+--producer-props \
+bootstrap.servers=localhost:9090,localhost:9091,localhost:9092 \
+batch.size=64000 \
+acks=all \
+--print-metrics
+```
