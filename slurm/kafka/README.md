@@ -378,3 +378,140 @@ https://eventsizer.io - калькулятор ресурсов
 - 2 cluster-a zookeeper, иерархический кворум
   - потенциальный split-brain
 
+Мониторинг Кафки
+- отслеживание поведения системы в реальном времени
+- трекинг изменений в поведении с течением времени
+- заблаговременное планирование ресурсов
+
+Собрать метрики:
+- Zookeeper
+- Kafka
+- JVM (менеджить память, GC (stop the world))
+  - частоту GC
+  - длительность GC
+- Host
+  - network
+  - disk
+    - io/latency
+    - capacity
+  - cpu
+  - mem
+
+Способы мониторинга:
+- JVM -> JMX -> JmxTrans Sidecar -> push -> graphite -> grafana
+- JVM -> JMX Exporter -> get -> Prometheus
+- JVM -> Custom Reporter (metric.reporters) -> Produce -> Metrics Topic -> Druid, Presto, Flink
+
+Подводные камни
+- перцентили считаются с помощью EDR. Иногда использует исторические метрики - когда нет данных.
+- статьи о проблемах с EDR
+  - https://medium.com/expedia-group-tech/your-latency-metrics-could-be-misleading-you-how-hdrhistogram-can-help-9d545b598374
+  - https://engineering.salesforce.com/be-careful-with-reservoirs-708884018daf
+
+Ключевые метрики:
+- Доступность
+  - UnderReplicatePartitions
+  - UnderMinIsrPartionCount
+  - Isr[Shrink|Expands]PerSec
+  - LeaderElectionRateAndTimeMs
+  - ErrorPerSec
+  - SessionState
+- Скорость
+  - TotalTimeMs
+  - PurgatorySize
+  - ZooKeeperRequestLatencyMs
+  - GC CollectionCount
+  - GC CollectionTime
+- Загруженность
+  - PartitionCount
+  - LeaderCount
+  - NetworkProcessorAvgIdlePercent
+  - RequestHandlerAvgIdlePercent
+  - Free Disk Space
+  - DISK IOPS/Latency
+  - CPU Usage
+  - Network Bytes In/Out
+- Трафик
+  - MessagesInPerSec
+  - Bytes[In|Out]PerSec
+  - RequestsPerSec
+
+Zookepeer metrics:
+- Доступность
+  - Leader (sum == 1)
+  - PartOfEnsemble (sum == N)
+- Скорость
+  - AvgRequestLatency
+  - GC CollectionCount
+  - GC CollectionTime
+- Загруженность
+  - NodeCount
+  - WatchCount
+  - OutstandingRequest
+  - Free Disk Space
+  - Disk IOPS/Latency
+- Трафик
+  - PacketsSent
+  - PacketsReceived
+  - NumAliveConnections
+
+Клиенты:
+- Желательно оборачивать ванильных клиентов в собственную библиотеку
+- Consumer Lag
+  - разница между log head (highest offset) и committed offset
+- Burrow - мониторинг лага консюмеров (https://github.com/linkedin/Burrow)
+
+Примеры SLI/SLO:
+- write
+  - SLI: (Total Produce Request - Produce Request Errors / Total Produce Request) * 100%
+  - SLO: >= 99% в течение последних 14 дней
+  - Как считать write SLI ?
+    - [нет] Агрегировать серверные метрики в одну
+    - [нет] Агрегировать клиентские метрики в одну
+    - [нет] Агрегировать клиентские метрики для каждого сервиса
+    - [да] использовать метрики внешнего монитора
+      - Xinfra Monitor: https://github.com/linkedin/kafka-monitor
+        - create and rebalance the monitoring
+        - product every N ms
+        - consume back
+        - JmxTrans Sider -> calc SLI -> SLO Report
+
+
+Kafka Performance
+
+- Кафка оптимизирована под high-throughput
+- Платит она за это сравнительно высокими и неравномерными latency
+
+- append-only подразумевает линейный (sequential) I/O
+  - read-ahead - данные при чтении предзагружаются системой
+  - write-behind - мелкие логические операции записи группируются в большие физические
+    - dirty-write
+
+Линейный доступ к диску может быть быстрее чтения из памяти:
+- https://queue.acm.org/detail.cfm?id=1563874
+
+Batching & Compression
+- кафка аккумулирует записи в батчи перед отправкой, снижая количество запросов к диску и пакетов, летящих по сети
+- встроенная компрессия батчей дополнительно снижает нагрузку на сеть и диск, и улучшает пропускную способность
+
+Легковесные консьюмеры
+- при чтении не меняют данные
+- коммит - запись в конец топика __consumer_offsets
+- real-time консюмеры фактически читают данные из page cache брокера
+
+No fsync
+- На самом деле Кафка - это in-memory queue с отложенной записью на диск
+- Сохранноть данных обеспечивается репликами и acks
+
+Zero Copy
+- внутри Kernel Context-a  из read buffer через transferTo() передается информация от дескрипторе данных (его позиция и length) в NIC buffer
+  - данные не копируются из буфера в буффер
+  - нет context switch между application context / kernel context
+
+Benchmarking
+- bin/kafka-producer-perf-test.sh
+- bin/kafka-consumer-perf-test.sh
+- bin/kafka-run-class.sh kafka.tools.EndToEndLatency
+- Trogdor - https://github.com/apache/kafka/blob/trunk/TROGDOR.md- 
+- OpenMessaging Benchmark: https://openmessaging.cloud/docs/benchmarks/kafka/
+
