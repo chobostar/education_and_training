@@ -515,3 +515,70 @@ Benchmarking
 - Trogdor - https://github.com/apache/kafka/blob/trunk/TROGDOR.md- 
 - OpenMessaging Benchmark: https://openmessaging.cloud/docs/benchmarks/kafka/
 
+#### Support and troubleshooting
+
+- auto.leader.rebalance.enable
+  - preffered leader
+  - pros:
+    - автомат
+  - cons:
+    - не имеет контекста, может вызвать зацикливание
+  - у zk есть ограничение на размер одного сообщения - topicPartitionList.json
+
+- manual
+  - происходит контролируемо
+  - возможна "умная" автоматизация
+  - требует алертинг
+  - требует действий со стороны администратора
+
+- Распределение партиций по брокерам
+  - Когда? добавление/удаление брокера
+  - Оптимальное распределение
+    - partition skew
+
+#### Обновление кластера
+why?
+  - фикс багов и увеличение производительности
+  - новые фичи
+  - SLO по обновлению
+  - Другие причины
+
+Планы
+  - подробный план
+  - документация - https://kafka.apache.org/documentation/#upgrade
+  - зафиксируйте версию протокола брокеров
+    - server.properties:
+      - inter.broker.protocol.version=CURRENT_KAFKA_VERSION
+      - log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION
+    - если не фиксируете версии явно, то вы согласны на неявное поведение кластера при обновлении
+  - rolling restart - надо медленно, ориентируясь на дашборды
+  - **точка невозврата** - обновите версию протокола брокеров
+  - rolling restart
+  - Обновите версию формата клиентов
+    - убедиться, что не осталось консумеров со старым форматом сообщений
+      - log.message.format.version=CURRENT_MESSAGE_FORMAT_VERSION
+  - rolling restart
+
+Zookeeper
+  - confluent - upgrade zk docs
+
+#### Troubleshooting
+- https://github.com/linkedin/kafka-monitor
+- https://github.com/linkedin/cruise-control + https://github.com/linkedin/cruise-control-ui
+- https://github.com/joway/burrow-dashboard
+
+для дебага:
+  - консольные консумеры
+  - kafkacat
+    - kafkacat -C -b kafka-staging:9092 -t stats -e | kafkacat -P -b kafka-dev:9092 -t stats_backup
+    - kafkacat -C -b localhost:9092 -t stats -p 0 -o -10 -e
+    - kafkacat -C -b localhost:9092 -o beginning -c 100 -e -t stats -f 'Topic %t: %o key %k: %s\n'
+  - kafka-topics.sh --describe --bootstrap-server localhost:9092 --unavailable-partitions
+  - kafka-topics.sh --describe --bootstrap-server localhost:9092 --under-min-isr-partitions
+  - kafka-topics.sh --describe --bootstrap-server localhost:9092 --at-min-isr-partitions
+  - kafka-topics.sh --describe --bootstrap-server localhost:9092 --under-replicated-partitions
+  - kafka-consumer-groups.sh
+  - kafka-dump-log.sh
+
+Как происходит kafka-reassign-partitions.sh:
+>Непосредственно в процессе балансировки партиций, вы можете увидеть, что фактор репликации переносимой в данный момент партиции увеличился. Это происходит из-за того, что брокер-контроллер выполняет балансировку посредством добавления новых реплик в список реплик каждой из партиций, увеличивая коэффициент репликации. После этого новые реплики копируют все существующие сообщения для всех партиций с текущей ведущей реплики. В зависимости от размера партиций на диске, эта операция может занять немало времени, так как возникают затраты на копирование данных по сети в новые реплики. После завершения репликации контроллер удаляет старые реплики из списка реплик, уменьшая коэффициент репликации до первоначального значения.
