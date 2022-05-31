@@ -34,3 +34,7 @@ Theory and practice around software engineering fundamentals
 ### Books
 
 [Clean Architecture](books/clean_archicture)
+
+### A Cloud Guru
+
+[Certified Solution Architect Associate](agloudguru/saa)
