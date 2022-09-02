@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dex
+  namespace: kube-system
+data:
+  config.yaml: |
+    issuer: https://auth.s<Ваш номер студента>.edu.slurm.io/
+    web:
+      http: 0.0.0.0:5556
+    staticClients:
+    - id: oidc-auth-client
+      redirectURIs:
+      - 'https://kubectl.s<Ваш номер студента>.edu.slurm.io/callback'
+      name: 'oidc-auth-client'
+      secret: xxxxxxxxxxxxxx
+    connectors:
+    - type: ldap
+      id: ldap
+      name: LDAP
+      config:
+        host: ad.slurm.io:389
+        insecureNoSSL: true
+        insecureSkipVerify: true
+        bindDN: Slurm
+        bindPW: 'OU5nIIhSHWobuasQlA1jlqnV'
+        userSearch:
+          baseDN: ou=Users,ou=Kubernetes,dc=slurm,dc=local
+          filter: "(objectClass=user)"
+          username: sAMAccountName
+          idAttr: sAMAccountName
+          emailAttr: sAMAccountName
+          nameAttr: displayName
+        groupSearch:
+          baseDN: ou=Kubernetes,dc=slurm,dc=local
+          filter: "(objectClass=group)"
+          userAttr: DN
+          groupAttr: member
+          nameAttr: name
+    oauth2:
+      skipApprovalScreen: true
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true

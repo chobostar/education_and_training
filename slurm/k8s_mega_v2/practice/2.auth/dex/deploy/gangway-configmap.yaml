@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gangway
+  namespace: kube-system
+data:
+  gangway.yaml: |
+    clusterName: "Slurm.io"
+    apiServerURL: "https://api.s<Ваш номер студента>.edu.slurm.io:6443"
+    authorizeURL: "https://auth.s<Ваш номер студента>.edu.slurm.io/auth"
+    tokenURL: "https://auth.s<Ваш номер студента>.edu.slurm.io/token"
+    clientID: "oidc-auth-client"
+    clientSecret: xxxxxxxxxxxxxx
+    trustedCAPath: "/opt/ca.pem"
+    redirectURL: "https://kubectl.s<Ваш номер студента>.edu.slurm.io/callback"
+    scopes: ["openid", "profile", "email", "offline_access", "groups"]
+    usernameClaim: "email"
+    emailClaim: "email"

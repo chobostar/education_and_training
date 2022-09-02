@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: dex
+  namespace: kube-system
+  labels:
+    component: oidc-auth
+spec:
+  rules:
+  - host: auth.s<Ваш номер студента>.edu.slurm.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: dex
+            port:
+              number: 5556
+  tls:
+  - hosts:
+    - auth.s<Ваш номер студента>.edu.slurm.io
+    secretName: dex-tls

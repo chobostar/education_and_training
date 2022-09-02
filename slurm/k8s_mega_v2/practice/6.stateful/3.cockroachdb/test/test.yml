@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: local-pv-test
+  labels:
+    app: local-pv-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: local-pv-test
+  template:
+    metadata:
+      labels:
+        app: local-pv-test
+    spec:
+      containers:
+      - name: local-pv-test
+        image: busybox
+        imagePullPolicy: IfNotPresent
+        command: ["sh"]
+        args: ["-c", "while true; do sleep 60; done"]
+        volumeMounts:
+          - name: pv-data
+            mountPath: /data
+      volumes:
+        - name: pv-data
+          persistentVolumeClaim:
+            claimName: pvc1

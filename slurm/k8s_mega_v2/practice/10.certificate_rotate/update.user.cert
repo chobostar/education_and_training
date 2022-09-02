@@ -1,0 +1,3 @@
+#!/bin/sh
+
+kubeadm alpha kubeconfig user --client-name system:node:kube.s000000.slurm.io --org system:nodes > /etc/kubernetes/kubelet.conf

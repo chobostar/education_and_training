@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gangway
+  labels:
+    component: oidc-auth
+  namespace: kube-system
+spec:
+  rules:
+  - host: kubectl.s<Ваш номер студента>.edu.slurm.io
+    http:
+      paths:
+      - pathType: Prefix
+        path: /
+        backend:
+          service:
+            name: gangway-svc
+            port:
+              name: http
+  tls:
+  - secretName: gangway-tls
+    hosts:
+    - kubectl.s<Ваш номер студента>.edu.slurm.io

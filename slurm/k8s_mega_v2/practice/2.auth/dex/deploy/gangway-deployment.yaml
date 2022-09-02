@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gangway
+  namespace: kube-system
+  labels:
+    app: gangway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gangway
+  template:
+    metadata:
+      labels:
+        app: gangway
+        component: oidc-auth
+    spec:
+      containers:
+        - name: gangway
+          image: centosadmin/gangway:v0.0.3
+          imagePullPolicy: Always
+          command: ["gangway", "-config", "/gangway/gangway.yaml"]
+          env:
+            - name: GANGWAY_SESSION_SECURITY_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: gangway-key
+                  key: sessionkey
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
+            limits:
+              cpu: "100m"
+              memory: "100Mi"
+          volumeMounts:
+            - name: gangway
+              mountPath: /gangway/
+            - name: ca-crt
+              mountPath: /opt
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
+            periodSeconds: 60
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            timeoutSeconds: 1
+            periodSeconds: 10
+            failureThreshold: 3
+      volumes:
+        - name: gangway
+          configMap:
+            name: gangway
+        - name: ca-crt
+          secret:
+            secretName: ca

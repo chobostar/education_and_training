@@ -1,0 +1,17 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: access-bd
+  namespace: base
+spec:
+  podSelector:
+    matchLabels:
+      run: base
+  ingress:
+  - ports:
+     - port: 22
+       protocol: TCP
+    from:
+      - podSelector:
+          matchLabels:
+            run: access
