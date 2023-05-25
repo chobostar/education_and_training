@@ -375,3 +375,25 @@ Delta store
 - a background thread migrates updates from delta store and applies them to DSM data
   - batch large chunks and then write them out as a PAX file
 
+Database partitioning
+- Split database across multiple resources
+  - disks, nodes, processors
+  - often called "sharding" in NoSQL systems
+
+The DBMS executes query fragments on each partition and then combines the results to produce a single answer.
+
+The DBMS can partition a database physically (shared nothing) or logically (shared disk).
+
+Horizontal partitioning
+- split a table's tuples into disjoint subsets based on some partitioning key and scheme
+  - choose column(s) that divides the database equally in terms of size, load, or usage
+
+Partitioning schemes:
+- hashing
+- ranges
+- predicates
+
+Parting thoughts
+- every modern OLAP system is using some variant of PAX storage. The key idea is that all data must be fixed-length
+- real-world tables contain mostly numeric attributes (int/float), but their occuped storage is mostly comprised of string data
+- modern columnar systems are so fast that most people do not  denormalize data warehouse schemas
