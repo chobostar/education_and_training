@@ -122,5 +122,100 @@ to containers and their deployment onto a compatible Anthos cluster
 - Rancher
 - KIND
 
-(Здесь прочитать внимательно как Anthos авторизуется в удаленном кластере, пока видно что через service account) 
+## Summary
+- Providing a single pane of glass to hybrid and multi-cloud Kubernetes for any
+  organization who uses microservices is a stepping stone to a successful and global
+  operation.
+- One of the biggest benefits to a single pane of glass is that admins can use the same
+  interface to configure service level objectives and alerts to reassure service
+  guarantees.
+- Anthos UI provides some major advantages including:
+  - Central operation of services and resources
+  - Consistent operation experience across multiple service providers
+  - Effortless navigation and easy staff training
+  - Providing a window to any organizational persona
+- Anthos UI provides multiple usages including cluster management, service operation
+  and observability using a unified interface
+- An admin can deploy applications directly from Anthos UI to any registered cluster in
+  a few easy steps.
+
+# Anthos, the computing environment built on Kubernetes
+
+While making the installation
+easier is a necessary step for most enterprises and frees up time to focus on more important
+activities, it does lead to an issue – not understanding the basic components and resources
+included in a cluster
+
+In order to use Kubernetes to its full potential, you should understand the
+underlying architecture and the role of each component. Knowing how components integrate
+with one another and what resources can be used will help you to make good architectural
+decisions when deploying a cluster or deploying an application.
+
+## Introducing Physical Servers
+- Library / Dependency conflicts between applications
+- Difficulty controlling access between multiple teams
+- Maintenance windows become difficult to schedule
+
+## Introducing Virtual Machines
+- Additional cost of each virtual machine operating system
+- Server sprawl - requiring patching and staff to manage each instance
+- Difficulty of scaling an application instance out
+- Installation of most software requires elevated privileges to be granted to multiple
+users
+
+## Containers
+a developer now needs to know how to:
+- Create a container image
+- Maintain different container images
+- Use container registries
+- Understand the container runtime that is used
+- Understand the container orchestrator, e.g. Kubernetes
+- Create configuration files for application deployments
+
+## Introduction to Serverless
+Serverless abstracts the container from the developer, allowing developers to focus on
+their code and image, rather than trying to decide what Kubernetes resources need to be
+created to run the application.
+
+## Addressing Kubernetes Gaps
+
+Anthos extends Google’s services and engineering practices to your organization, allowing
+you to modernize applications faster with operational consistency across GCP services and
+your own environments.
+
+|Anthos Feature|Description|
+|---|---|
+|Anthos Connect|Connects clusters to GCP, simplifying connectivity, authentication, and authorization of clusters|
+|Anthos Config Manager (ACM)|Provides configuration and policy management|
+|Anthos Service Mesh (ASM)|Service mesh based on Istio|
+|Cloud Operations for GKE|Logging and monitoring|
+|Cloud Run|Serverless workloads|
+|Istio-Ingress|Ingress controller|
+
+since Anthos runs on a standard
+Kubernetes platform, you can replace or add any components that you require
+
+## Managing On-Prem and Off-Prem Clusters
+
+Using the native offering offers the quickest and easiest way to get a new cluster up and
+running, since the providers have automated the installation
+
+Using a different solution for multiple installations often lead to a variety of different issues, including:
+- Increased staff to support each deployment
+- Differences in the deployment of an application for on-prem and off-prem
+- Different identity management solutions
+- Different Kubernetes versions
+- Different security models
+- Difficulty in standardizing cluster operations
+- No single view for all clusters
+
+Anthos, which addresses the on-prem and
+off-prem challenges by providing a Kubernetes installation and management solution that not
+only works on GCP and on-premise clusters, but in other Cloud providers like AWS and Azure
+running Anthos.
+
+## Kubernetes architecture
+
+When a cluster is running in GCP the control plane is created in a Google managed project, which
+limits you from interacting with the admin nodes and the Kubernetes components
 
