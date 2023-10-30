@@ -96,3 +96,149 @@ terraform {
   }
 }
 ```
+
+## T modules
+
+- container for multiple resources that are used together
+- root module - consists of code files in your main working directory
+- modules can be downloaded or referenced from:
+  - T public registry
+  - private registry
+  - local folder
+- module block:
+  ```hcl
+  module "my-vpc-module" {
+    source = "./modules/vpc"
+    version = "0.0.5"
+    region = var.region
+  }
+  ```
+- take input and provide outputs (`module.my-vpc-module.subnet_id`)
+
+## T built-in functions
+UDF not allowed
+
+functions:
+- join, file, flatten
+
+```bash
+terraform console
+
+max (5,3,1,4,5)
+
+timestamp()
+```
+
+## T type constraints
+
+- Primitive - number, string, bool
+- Complex - list, tuple, map, object
+- Collection - list(type), map(type), set(type)
+- Structural - object(type), tuple(type), set(type)
+  ```hcl
+  variable "instructor" {
+    type = object({
+      name = string
+      age = number
+    })
+  }
+  ```
+- Dynamic types - any.
+  ```hcl
+  variable "data" {
+    type = list(any)
+    default = [1, 42, 7]
+  }
+  ```
+
+## T dynamic blocks
+
+Iterate, loop and make code cleaner
+
+supported within the following block types:
+- resource
+- data
+- provider
+- provisioner
+
+```hcl
+dynamic "ingress" {
+  for_each = var.rules
+  content {
+    from_port = ingress.value["port"]
+    to_from = ingress.value["port"]
+    protocol = ingress.value["proto"]
+    cidr_blocks = ingress.value["cidrs"]
+  }
+}
+
+variable "rules" {
+  default = [
+    {
+      port = 80
+      proto = tcp
+      cidr_blocks = ["0.0.0.0/0"]
+    },
+    {
+      port = 22
+      proto = "tcp"
+      cidr_blocks = ["1.2.3.4/32"]
+    }
+  ]
+}
+```
+
+## T fmt, taint and import commands
+
+terraform fmt
+- formats code for readability
+- safe to run at any time
+
+terraform taint
+- taints a resource, forcing it to be destroyed and recreated
+- modifies the state file, which causes the recreation workflow
+- **tainting a source may cause other resources te modified** (which depends on it)
+  - e.g. changing PublicIP
+
+For Terraform v0.15.2 and later, the `terraform apply -replace` is recommended; previously terraform taint was used.
+
+terraform import
+- maps existing resources to T using an "ID"
+- "ID" is dependent on the underlying vendor
+- importing the same resource to multiple Terraform resources can cause unknown behavior and **is not recommended**
+
+T configuration block
+- https://developer.hashicorp.com/terraform/language/settings
+  ```hcl
+  terraform {
+    required_version = ">=0.13.0"
+    ...
+  }
+  ```
+
+## T Workspaces (CLI)
+- The workspaces are alternate state files withing the same working directory
+- T starts with a single workspace that is always called `default`. It cannot be deleted
+- `terraform workspace new <NAME>`, `terraform workspace select <NAME>`
+- Use cases
+  - Test changes using a parallel, distinct copy of infrastructure
+  - It can be modeled against branches in version control such as Git
+- Access to a workspace name is provided through the `${terraform.workspace}` variable
+
+Example:
+```hcl
+resource "aws_instance" "example" {
+  count = terraform.workspace == "default" ? 5 : 1
+  # ...
+}
+```
+
+State files:
+- default - `terraform.tfstate`
+- others - in folder `terraform.tfstate.d`
+
+## Debugging T
+
+- TF_LOG - env var: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`
+- TF_LOG_PATH - by default not defined (disabled)
+
