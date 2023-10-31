@@ -242,3 +242,37 @@ State files:
 - TF_LOG - env var: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`
 - TF_LOG_PATH - by default not defined (disabled)
 
+## Hashicorp sentinel (Terraform Enterprise)
+
+- Enforces policies on your code
+- Has its own policy language - Sentinel language
+- Designed to be approachable by non-programmer
+
+runs after plan and before apply
+
+- Guardrails for automation
+- Encorcing CIS standarts
+- Do not allow traffic port 22
+
+## T registry and T cloud workspace (Enterprise)
+
+A repo of publicly available T providers and modules - https://registry.terraform.io
+
+Cloud Workspace:
+- the same as OSS, but Directories hosted in Cloud
+- Maintains a record of all execution activity
+- All T commands executed on "managed" T cloud VMs
+- Variables are stored in workspace (in Terraform cloud)
+- State is stoed in workspace (in Terraform cloud)
+- Secrets are stored in workspace (in Terraform cloud)
+
+^ Collabation across the team.
+
+Thus:
+- remote execution
+- workspace based org modle
+- VCS
+- remote state
+- private T module registry
+- **Cost estimation** and Sentinel integration features (AWS, GCP, ...)
+
