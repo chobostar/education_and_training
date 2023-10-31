@@ -276,3 +276,5 @@ Thus:
 - private T module registry
 - **Cost estimation** and Sentinel integration features (AWS, GCP, ...)
 
+## Exam Review guide 
+https://developer.hashicorp.com/terraform/tutorials/certification-003/associate-review-003
