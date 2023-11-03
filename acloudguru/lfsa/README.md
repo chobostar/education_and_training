@@ -79,3 +79,192 @@ FS:
 - diff - compare line by line, could compare directories
 - comm - must be sorted
 - cmp - byte by byte, returns the position of the first difference
+
+## Use Input-Output Redirection (e.g. >, >>, |, 2>)
+FDs:
+- stdin, stdout, stderr
+
+Redirection:
+- pipe (|)
+- create / overwrite (>)
+- >>
+- <
+
+## Analyze Text Using Basic Regular Expressions
+```
+grep '^The ' filename
+grep '^T[a-z]^[e]' filename.txt
+...
+```
+
+## Archive, Backup, Compress, Unpack, and Decompress Files
+```
+tar
+```
+
+## Create, Delete, Copy, and Move Files and Directories
+```
+touch, nano, cp, mv, mkdir, rm, rmdir (only if dir is empty), rm -r
+```
+
+## Create and Manage Hard and Soft Links
+
+Hard link
+- direct pointer to file (inode)
+- can only be a file
+- shares the same inode as source
+- as long as hard link exists, the data exists
+
+```
+ln info.txt infohardlink
+ls -lhF
+
+ls -li # the same inode
+```
+
+Soft link (Symbolink link)
+- A redirect to file (think shorcut or alias)
+- Can be a file or directory
+- Has a unique inode (own)
+- Can be on a different filesystem or mounted share
+- If the source file is deleted, the soft link is broken
+
+```
+ln -s details.txt detailssoftlink
+ls -lhF
+```
+
+## List, Set, and Change Standard File Permissions
+
+special permission:
+```
+suid = s     4000
+sguid = s    2000
+sticky = t   1000
+```
+
+```
+chmod 777 filename 
+chmod u+rwx filename; chmod g+rwx filename; chmod o+rwx filename
+```
+
+```
+chmod 755 filename
+chmod g-x filename; chmod u-x filename; chmod o-x filename
+```
+
+```
+chown
+```
+
+Several file systems support **file attributes** that enable further customization of allowable file operations. File attributes (make immutable):
+```
+sudo chattr +i start.sh
+lsattr start.sh
+```
+Read more: https://wiki.archlinux.org/title/File_permissions_and_attributes#File_attributes
+
+## Manage Access to the root Account
+
+Evelator command:
+```
+sudo command
+```
+
+```
+su - substitute user
+```
+- access is granted via entries in the `/etc/sudoers` file
+- access can be managed by account or by group
+
+## Read and Use System Documentation
+
+- man pages
+- info pages
+- help pages
+- `whatis` command
+
+# Boot, Reboot, and Shut Down a System Safely
+
+- shutdown -r <TIME>, reboot
+- shutdown -H <TIME>, halt
+- shutdown -P <TIME>, poweroff
+```
+$ ls -la /sbin/shutdown 
+lrwxrwxrwx 1 root root 14 Mar  2  2023 /sbin/shutdown -> /bin/systemctl
+```
+
+## Boot or Change System into Different Operating Modes
+
+Init is the first process started when a computer boots up
+and is the direct or indirect parent of all other processes.
+
+Runlevels:
+- 0 - system halt
+- 1 - single user mode
+- 2 - Multi-user
+- 3 - Multi-user with network
+- 4 - Experemental
+- 5 - Multi-user with network and graphical mode (as your desktop)
+- 6 - Reboot
+
+```
+$ runlevel
+N 5
+
+$ systemctl get-default
+graphical.target
+```
+
+## Install, Configure, and Troubleshoot Boot-Loaders
+
+GRUB2 - boot-loader
+
+```
+$ cat /boot/grub/grub.cfg
+
+$ ls -l /etc/grub.d/
+total 136
+-rwxr-xr-x 1 root root 10627 авг 12  2021 00_header
+-rwxr-xr-x 1 root root  6258 авг 12  2021 05_debian_theme
+-rwxr-xr-x 1 root root 18224 янв 11  2022 10_linux
+-rwxr-xr-x 1 root root 42359 авг 12  2021 10_linux_zfs
+-rwxr-xr-x 1 root root 12894 авг 12  2021 20_linux_xen
+-rwxr-xr-x 1 root root  1992 авг 18  2020 20_memtest86+
+-rwxr-xr-x 1 root root 12059 авг 12  2021 30_os-prober
+-rwxr-xr-x 1 root root  1424 авг 12  2021 30_uefi-firmware
+-rwxr-xr-x 1 root root   700 фев 21  2022 35_fwupd
+-rwxr-xr-x 1 root root   214 авг 12  2021 40_custom
+-rwxr-xr-x 1 root root   216 авг 12  2021 41_custom
+-rw-r--r-- 1 root root   483 авг 12  2021 README
+
+$ cat /etc/default/grub
+
+$ update-grub
+```
+
+## Diagnose and Manage Processes
+- top
+- htop
+- ps, `ps -ef`, `ps aux`
+
+- `sudo nice -n -10 /bin/bash`
+- `sudo renice -n 20 12705`
+
+## Locate and Analyze System Log Files
+
+Ubuntu/Debian:
+```
+ls /var/log
+```
+
+```
+less /var/log/syslog
+cat /var/log/syslog | grep apparmor
+```
+
+CentOS:
+```
+cat /var/log/boot.log
+cat /var/log/messages
+```
