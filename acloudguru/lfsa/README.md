@@ -268,3 +268,191 @@ CentOS:
 cat /var/log/boot.log
 cat /var/log/messages
 ```
+
+## Schedule Tasks to Run at a Set Date and Time
+
+`crontab -e`
+
+## Verify Completion of Scheduled Jobs
+
+## Update and Manage Software to Provide Required Functionality and Security, Part 1 - Ubuntu/Debian
+
+```bash
+# install
+dpkg -i filename.deb
+
+# list
+dpkg -l
+
+# remove package
+dpkg -r pkgname 
+```
+
+```bash
+sudo aptitude
+```
+
+```
+apt
+
+apt-get
+```
+
+## Update and Manage Software to Provide Required Functionality and Security, Part 2 - CentOS/Redhat
+
+```
+rpm -ivh filename.rpm (install)
+rpm -Uvh filename.rpm (upgrade)
+rpm -qa (list installled pkgs)
+rpm -e filename.rpm (upgrade)
+```
+
+```
+yum install/remove/update/list/search
+dnf install/remove/update/list/search
+```
+
+## Verify the Integrity and Availability of Resources
+
+Unmount and check fs (never check a mounted fs):
+```
+sudo umount /path/to/fs
+sudo fsck /path/to/fs
+```
+
+## Verify the Integrity and Availability of Key Processes
+
+```
+ps
+top/htop
+```
+
+## Change Kernel Runtime Parameters, Persistent and Non-Persistent
+
+non-persistence
+```bash
+sysctl -a
+sysctl dev.cdrom.autoclose
+sysctl -w dev.cdrom.autoclose=0
+sysctl -p  (load the new configuration, by default /etc/sysctl.conf)
+```
+```
+ls -al /proc/sys
+echo 0 > /proc/sys/dev/cdrom/autoclose
+```
+
+persistent:
+```
+nano /etc/sysctl.d/99_my_sysctls.conf
+sysctl -p /etc/sysctl.d/99_my_sysctls.conf
+
+service procps start
+```
+
+## Use Scripting to Automate System Maintenance Tasks
+
+shebang:
+```
+#!/bin/bash
+#!/bin/zshell
+#!/bin/dash
+```
+
+## Scripting Conditionals and Loops Part 1 - Operators/If
+
+```
+read -p "Enter a number for a: ' a
+read -p "Enter a number for b: ' b
+```
+
+```
+-eq
+-gt
+-lt
+```
+
+```
+if [ a = b ]; then
+  echo True
+else
+  echo False
+fi
+```
+
+filecheck:
+```
+if [ -f $FILE ]; then
+  echo "$FILE exists"
+fi
+```
+
+## Scripting Conditionals and Loops Part 2 - For/While/Until
+
+```
+for x in 1 2 3
+do
+  echo "x = " $x
+done
+```
+
+```
+while read url
+do
+  curl "$url" >> output.html
+done < listofurls.txt
+```
+
+## Manage the Startup Process and Services (In Services Configuration)
+
+```
+systemctl status <service>
+
+systemctl start <service>
+systemctl stop <service>
+systemctl restart <service>
+
+systemctl enable <service>
+systemctl disable <service>
+```
+
+## List and Identify SELinux/AppArmor File and Process Contexts
+
+SELinux - Centos
+```bash
+sudo semanage fcontext -l 
+sudo semanage fcontext -l | grep sshd
+```
+context info for every file, dir and process on the system.
+
+- Enforce mode - access is not allowed
+  ```bash
+  getenforce (will return the SELinux mode)
+  setenforce (will update the SELinux mode)
+  ```
+- Passive mode - log the infraction
+- Disabled - nothing happens
+```
+ls -Z
+ps auxZ  |grep cron
+```
+
+
+AppArmor - Ubuntu
+- /etc/apparmor.d/
+
+```
+sudo aa-status
+cat /etc/apparmor.d/usr.sbin.tcpdump
+```
+
+```
+ps auxZ
+```
+
+```
+aa-enabled (returns whether AppArmor is enabled)
+
+aa-disable (will disable an AppArmor security profile)
+aa-enable (set enable)
+aa-complain (set complain)
+```
