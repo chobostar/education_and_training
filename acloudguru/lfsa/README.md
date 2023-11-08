@@ -456,3 +456,165 @@ aa-disable (will disable an AppArmor security profile)
 aa-enable (set enable)
 aa-complain (set complain)
 ```
+
+## Labs - packaing
+
+```bash
+yum clean all
+yum makecache
+
+# Next, let's list the available updates:
+yum list updates
+
+# Finally, we need to update the software packages on the system:
+yum -y update
+```
+
+```bash
+yum search 'apache http'
+
+yum provides httpd
+
+yum -y install httpd
+
+systemctl status httpd
+
+systemctl enable httpd --now
+
+systemctl status httpd.service
+```
+
+```bash
+# Let's first make sure that the elinks package isn't installed:
+rpm -qd httpd
+
+# Show configuration files:
+rpm -qc httpd
+
+# Show which package owns a file (in this case /sbin/httpd):
+rpm -qf /sbin/httpd
+
+# Show all packages installed on the system:
+rpm -qa | wc
+
+# We piped this command into wc, just so our screen wouldn't be inundated with information, but we can see that there are several hundred packages installed on the system. To look at them in order of install time, from oldest to newest:
+rpm -qa --last | tac
+
+# At least this way, what's down near our new command prompt is the most recently installed packages.
+# Now if we just want to see packages that start with httpd, we'd run:
+rpm -qa 'httpd*'
+```
+
+## User and Group Management
+
+```bash
+useradd
+adduser
+
+usermod
+
+userdel
+deluser
+```
+
+```
+cat /etc/passwd
+```
+
+## Create, Delete, and Modify Local Groups and Group Memberships
+
+```
+cat /etc/group
+```
+GROUPNAME:x:gid:<list-of-users>
+
+```
+groupadd
+addgroup
+gpasswd
+
+usermod -aG groupname useraccount
+gpasswd -d username groupname
+```
+updates after re-login
+
+- check own groups `groups`
+- check user's groups `groups username`
+
+switch to groups session:
+```
+newgrp groupname
+```
+
+edit groups file
+```
+sudo vigr
+```
+
+## Manage System-Wide Environment Profiles
+
+```
+env
+printenv
+echo $VAR
+```
+
+Local:
+- export VAR='value'
+
+User:
+- echo "export VAR='value'" >> ~/.bashrc, ~/.bash_profile, ...
+
+System:
+- export VAR='value' >> /etc/profile.d/custom.sh
+- export VAR='value' >> /etc/bash.bashrc
+- export VAR='value' >> /etc/environment
+
+```
+unset VAR
+```
+
+## Manage Template User Environment
+```
+ls -la /etc/skel
+```
+
+## Configure User Resource Limits
+
+/etc/security/limits.conf
+
+```txt
+#<domain>      <type>  <item>         <value>
+#
+
+#*               soft    core            0
+#root            hard    core            100000
+#*               hard    rss             10000
+#@student        hard    nproc           20
+#@faculty        soft    nproc           20
+#@faculty        hard    nproc           50
+#ftp             hard    nproc           0
+#ftp             -       chroot          /ftp
+#@student        -       maxlogins       4
+```
+
+man limits.conf
+
+```
+ulimit -a
+```
+
+## Manage User Privileges
+
+/etc/security/access.conf
+
+permission:users:origins
+
+```
+# User "root" should be allowed to get access from hosts with ip addresses.
+#+:root:192.168.200.1 192.168.200.4 192.168.200.9
+#+:root:127.0.0.1
+
+# User "john" should get access from ipv4 as ipv6 net/mask
+#+:john:::ffff:127.0.0.0/127
+```
