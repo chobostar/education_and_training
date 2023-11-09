@@ -521,6 +521,15 @@ deluser
 cat /etc/passwd
 ```
 
+And to make test1 change their password on the next login, run:
+```
+chage -d0 test1
+```
+password:
+```
+cat /etc/shadow
+```
+
 ## Create, Delete, and Modify Local Groups and Group Memberships
 
 ```
@@ -549,6 +558,11 @@ newgrp groupname
 edit groups file
 ```
 sudo vigr
+```
+
+edit  sudoers:
+```
+visudo
 ```
 
 ## Manage System-Wide Environment Profiles
@@ -617,4 +631,172 @@ permission:users:origins
 
 # User "john" should get access from ipv4 as ipv6 net/mask
 #+:john:::ffff:127.0.0.0/127
+```
+
+## Configure PAM
+
+- App must be PAM-aware
+- /etc/pam.d
+- /etc/pam.conf
+
+```bash
+$ ls /lib/x86_64-linux-gnu/security/
+pam_access.so  pam_extrausers.so  pam_gnome_keyring.so  pam_localuser.so  pam_permit.so     pam_shells.so      pam_timestamp.so  pam_xauth.so
+pam_cap.so     pam_faildelay.so   pam_group.so          pam_loginuid.so   pam_pwhistory.so  pam_stress.so      pam_tty_audit.so
+pam_debug.so   pam_faillock.so    pam_issue.so          pam_mail.so       pam_rhosts.so     pam_succeed_if.so  pam_umask.so
+pam_deny.so    pam_filter.so      pam_keyinit.so        pam_mkhomedir.so  pam_rootok.so     pam_systemd.so     pam_unix.so
+pam_echo.so    pam_fprintd.so     pam_lastlog.so        pam_motd.so       pam_securetty.so  pam_tally2.so      pam_userdb.so
+pam_env.so     pam_ftp.so         pam_limits.so         pam_namespace.so  pam_selinux.so    pam_tally.so       pam_warn.so
+pam_exec.so    pam_gdm.so         pam_listfile.so       pam_nologin.so    pam_sepermit.so   pam_time.so        pam_wheel.so
+```
+
+PAM Workflow
+- A user launches a PAM-aware application
+- The app calls **libpam**
+- The library checks for files in /etc/pam.d directory to see which PAM modules to load, including **system-auth**
+- Each module is executed by following the rules defined for that application
+![pam.png](imgs%2Fpam.png)
+
+# Networking
+## Configure Networking and Hostname Resolution Statically or Dynamically
+
+interfaces:
+```
+ifconfig
+```
+
+```
+$ ls -la /etc/network
+total 32
+drwxr-xr-x   6 root root  4096 авг 19  2021 .
+drwxr-xr-x 159 root root 12288 окт 24 10:08 ..
+drwxr-xr-x   2 root root  4096 авг 22 06:53 if-down.d
+drwxr-xr-x   2 root root  4096 июн  2 06:49 if-post-down.d
+drwxr-xr-x   2 root root  4096 апр 21  2022 if-pre-up.d
+drwxr-xr-x   2 root root  4096 авг 22 06:53 if-up.d
+```
+
+Ubuntu:
+```
+ls /etc/netplan
+
+ip addr show
+```
+
+Centos:
+```
+cd /etc/sysconfig/network-scripts
+cat ifcfg-ens5
+
+sudo ip link set ens5 down && sudo ip link set ens5 up
+```
+
+## Configure Network Services to Start Automatically at Boot
+
+- ssh (encrypted)
+- ntp
+- telnet (not encrypted)
+
+telnet:
+```
+systemctl status inetd
+systemctl status xinetd
+sudo apt-get install telnetd telnet
+```
+
+`cat /etc/services`
+
+## Implement Packet Filtering
+
+- iptables -L
+
+DROP configuration for ICMP:
+```
+iptables -A INPUT -p icmp -i ens5 -j DROP
+-A - append
+-p - protocol
+-i - name of interface
+-j - target rule
+```
+
+```
+iptables --flush
+```
+
+## Start, Stop, and Check the Status of Network Services
+
+```
+netstat -ie
+```
+
+```
+$ netstat -r
+Kernel IP routing table
+Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+default         _gateway        0.0.0.0         UG        0 0          0 wlp2s0
+link-local      0.0.0.0         255.255.0.0     U         0 0          0 wlp2s0
+172.17.0.0      0.0.0.0         255.255.0.0     U         0 0          0 docker0
+172.18.0.0      0.0.0.0         255.255.0.0     U         0 0          0 br-e210288b8efa
+172.19.0.0      0.0.0.0         255.255.0.0     U         0 0          0 br-2dbe025c4f2c
+192.168.0.0     0.0.0.0         255.255.255.0   U         0 0          0 wlp2s0
+192.168.49.0    0.0.0.0         255.255.255.0   U         0 0          0 br-e01d5ac90408
+```
+
+all sockets for tcp:
+```
+netstat -at
+```
+udp:
+```
+netstat -au
+```
+statistics:
+```
+netstat -su
+netstat -st
+```
+
+## Statically Route IP Traffic
+```
+ip addr show
+```
+
+```
+route -n
+ip route show
+```
+
+```
+traceroute 8.8.8.8
+```
+
+forwarding:
+```
+$ sysctl net.ipv4.ip_forward
+net.ipv4.ip_forward = 1
+```
+
+```
+ip route add 8.8.0.0/16 proto static metric 10 via inet 192.168.1.1 12 dev enp0s5
+```
+
+```
+ip route del 8.8.0.0/16 proto static metric 10 via inet 192.168.1.1 12 dev enp0s5
+```
+
+## Synchronize Time Using Other Network Peers
+
+```
+timedatectl
+```
+
+enable/disable sync:
+```
+timedatectl set-ntp on/off
+```
+
+view and update TZ:
+```
+timedatectl list-timezones
+timedatectl set-timezone TIMEZONE
 ```
