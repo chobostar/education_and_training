@@ -800,3 +800,71 @@ view and update TZ:
 timedatectl list-timezones
 timedatectl set-timezone TIMEZONE
 ```
+
+## Adding an IP Address and a Static Route
+
+```
+ip a add 10.0.5.20/24 dev ens5
+ip a del 10.0.5.20/24 dev ens5
+```
+
+```
+ip r add 10.0.6.0/24 via 10.0.5.5 dev ens5
+ip r del 10.0.6.0/24 via 10.0.5.5 dev ens5
+```
+
+# Service Configuration
+## Configure a Caching DNS Server
+
+- /etc/bind/named.conf.options
+- apt install bind9 bind9utils bind9doc
+
+## Maintain a DNS Zone
+
+Component of a DNS Zone:
+- Zone entry - named.conf.local
+- Forward lookup zone file
+- Reverse lookup zone file
+
+Content of a Zone file
+- SOA
+- NS
+- A
+- NX
+- CN
+
+```
+sudo named-checkconf
+sudo systemctl restart bind9
+```
+
+## Configure Email Aliases
+
+```
+cd /etc/postfix; ls -la;
+nano aliases
+postalias /etc/postfix/aliases
+```
+
+## Configure SSH Servers and Clients
+/etc/ssh/sshd_config
+
+/etc/ssh/ssh_config
+
+~/.ssh/config
+
+```
+ssh-keygen
+```
+
+```
+ssh-copy-id cloud_user@<remote-host>
+```
+## Restrict Access to HTTP Proxy Servers
+
+/etc/squid/squid.conf
+
+## Configure an IMAP and IMAPS Service (and Pop3 and Pop3S)
+
+cat /etc/dovecot/dovecot.conf
+
