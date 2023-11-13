@@ -868,3 +868,136 @@ ssh-copy-id cloud_user@<remote-host>
 
 cat /etc/dovecot/dovecot.conf
 
+## Query and Modify the Behavior of System Services at Various Operating Modes
+
+```
+systemctl cat apache2
+
+systemctl edit cups
+
+rm -rf /etc/systemd/system/cups.service.d/
+
+systemctl daemon-reload
+
+systemctl edit --full cups
+
+systemctl list-dependancies cups
+
+systemctl list-units --type=service
+systemctl list-units --type=service --state=inactive
+systemctl list-units --type=service --state=active
+```
+
+## Configure an HTTP Server (Ubuntu/Debian)
+
+```
+/var/www/html
+
+ls -lah /etc/apache2
+
+/etc/apache2/site-available/000-default.conf
+
+/etc/apache2/site-enabled/
+
+apachectl configtest
+
+/var/log/apache2
+```
+
+## Configure HTTP Server Log Files
+
+```
+cat /etc/apache2/apache2.conf | grep LogFormat
+```
+
+## Restrict Access to a Web Page
+
+Make backup of the conf file before making changes
+```
+<Directory /var/www/html/test/>
+   Order allow,deny
+   Allow from 192.168.1.50
+   Allow from 192.168.26   
+   Allow from 127
+</Directory>
+```
+
+## Configure a Database Server
+
+- disable anonymous accounts when possible
+- disable remote root logon access when possible
+
+## Manage and Configure Containers
+```
+docker ps
+docker image list
+docker run
+docker start/stop
+docker rm
+```
+
+## Manage and Configure Virtual Machines
+vm extensions:
+```
+cat /proc/cpuinfo | grep vmx
+```
+- if no - use `qemu`
+
+```
+virt-install
+virt-clone
+virt-managed
+virsh 
+```
+
+```
+virsh-install --name=tiny --vcpus=1 --memory=1024 --cdrom=alpine-standard-3.10.3-x86.iso --disk size=5
+```
+
+```
+virsh list --all
+```
+
+# Storage Management
+
+## List, Create, Delete, and Modify Physical Storage Partitions
+
+```
+lsblk - list block devices
+fdisk, parted - manage disk partitions
+```
+
+```
+sudo fdisk /dev/sdb
+
+m - help
+
+w
+```
+
+```
+parted /dev/sdb
+
+resizepart
+2
+1024
+```
+
+## Manage and Configure LVM Storage Part 1 - Create LVM
+
+LVM - allows you to join multiple physical disks together in such a way that they are presented to the OS as a single disk
+
+- pvcreate /dev/disk1 /dev/disk2
+- pvdisplay
+- vgcreate vgname /dev/disk1 /dev/disk2
+- vgdisplay
+- lvcreate --name lvname --size xxxM vgname
+- lvdispaly
+
+```
+mkfs.ext4 /dev/vg01/lv01
+mkdir -p /mnt/data
+mount /dev/vg01/lv01 /mnt/data
+```
+
+
