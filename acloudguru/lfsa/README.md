@@ -1000,4 +1000,159 @@ mkdir -p /mnt/data
 mount /dev/vg01/lv01 /mnt/data
 ```
 
+## Manage and Configure LVM Storage Part 2 - Extend LVM
 
+```
+pvs
+
+vgs
+
+vgextend vgname /dev/disk1
+
+lvs
+
+lvextend -l EXTENTS /dev/vgname/lvname
+```
+
+```
+pvcreate /dev/sdc3
+pvs
+pvdisplay
+```
+
+```
+vgs
+vgdisplay
+```
+
+```
+vgextend vg01 /dev/sdc3
+vgs
+pvs
+lvs
+resize2fs /dev/vg01/lv01
+df -h
+```
+
+```
+pvmove
+pvremove
+...
+```
+
+## Create and Configure Encrypted Storage
+
+check if module is loaded:
+```
+grep -i config_dm_crypt /boot/config-$(uname -r)
+```
+
+To create an encrypted partition:
+```cryptsetup -y luksFormat /path/partition```
+
+To open an encrypted partition:
+```cryptsetup luksOpen /path/partition fsname```
+
+To close an encrypted partition:
+```
+umount /mnt/filesystem
+cryptsetup luksClose fsname
+```
+
+## Configure Systems to Mount File Systems at or During Boot
+
+- /etc/fstab
+
+## Configure and Manage Swap Space
+
+- A file, partition, or combination of the two used to store inactive pages of memory to free up RAM for system use
+- Not an alternative to RAM, just a temporary fix as swap is much slower because the pages are written to a disk and no longer redident in memory
+
+```
+swapon --show
+
+$ free
+              total        used        free      shared  buff/cache   available
+Mem:       32423648    12857740     6452608     1286004    13113300    17826232
+Swap:       2097148     1057432     1039716
+
+htop
+```
+
+```
+sudo swapoff -a
+
+sudo swapon -a
+```
+
+```
+fallocate ...
+dd ...
+mkswap /swapfile2
+```
+
+## Create and Manage RAID Devices
+
+```
+lsblk
+fdisk /dev/sdc
+```
+
+```
+mdadm --create --verbose /dev/md0 --level=0 --raid-devices=2 /dev/sdc1 /dev/sdc2
+
+cat /proc/mdstat
+
+mdadm --detail /dev/dm0
+
+mkfs.ext4 /dev/md0
+mount /dev/md0 /mnt/raid
+```
+
+```
+mdadm --detail --scan
+nano /etc/mdadm/mdadm.conf
+
+mdadm --assemble --scan
+update-initramfs -u
+```
+
+`nano /etc/fstab`
+```
+/dev/md0 /mnt/raid ext4 default 0 0
+```
+
+## Configure Systems to Mount File Systems on Demand
+```
+yum install samba-client samba-common cifs-utils
+```
+
+```
+smbclient -L REMOTESYSTEM
+```
+
+## Create, Manage, and Diagnose Advanced File System Permissions
+
+- sticky bit - permission set on a directory that allows only the owner or the root user to delete or rename contents within the dir
+- setgid
+- setuid - permission set on a file so that when an executable is launched, it will run with owner's privileges rather than the user
+
+set sticky bit:
+```
+chmod 1770 directory
+```
+
+## Set up User and Group Disk Quotas for File Systems
+
+- /etc/fstab
+  - add usrquota and/or grpquota options to the entry
+- run the `quotacheck` cmd to create user and/or group quota files
+- use `quotaon` command to turn on quotas for a filesystem
+
+```
+edquota -u username
+
+quota -vs username
+
+repquota -asgu
+```
