@@ -1156,3 +1156,90 @@ quota -vs username
 
 repquota -asgu
 ```
+
+## Create and Configure File Systems
+
+/etc/fstab
+
+```
+mkfs -t ext4 /dev/sdc1
+```
+
+```bash
+mkfs.ext4 /dev/sdc2 
+```
+
+## Creating and Mounting an Encrypted Filesystem
+
+```
+yum -y install cryptsetup
+
+fdisk /dev/nvme1n1
+
+cryptsetup -y luksFormat /dev/nvme1n1p1
+
+cryptsetup luksOpen /dev/nvme1n1p1 cryptvol
+
+mkfs -t ext4 /dev/mapper/cryptvol
+
+cryptsetup luksClose cryptvol
+
+mkdir /mnt/keys/
+
+cryptsetup luksOpen /dev/nvme1n1p1 cryptvol
+
+mount /dev/mapper/cryptvol /mnt/keys
+
+umount /mnt/keys/
+cryptsetup luksClose cryptvol
+```
+
+Logical Volume and filesystem to the the maximum size (VG Size in the output of the vgdisplay command)
+
+## Managing Swap Files and Partitions
+
+Create a Persistent 1 GB Swap Partition:
+```
+fdisk /dev/xvdg
+```
+Press the following to create the partition:
+- n for new partition
+- Enter to select the default (primary) type
+- Enter for the default first sector
+- +1G for the size of the partition
+- t to change the type
+- L to list the types
+- 82 for Linux Swap
+- p (this is optional) to show what the drive will look like and review our settings
+- w to write changes and quit
+
+```
+mkswap /dev/xvdg1
+
+echo "/dev/xvdg1   none     swap    defaults        0 0" >> /etc/fstab
+```
+
+```
+swapon -s
+swapon /dev/xvdg1
+swapon -s
+```
+
+Create a Persistent 512 MB Swap File:
+```
+dd if=/dev/zero of=/root/extra.swp bs=1M count=512
+mkswap /root/extra.swp
+swapon /root/extra.swp
+
+chmod 0600  /root/extra.swp
+ls -l /root/extra.swp
+```
+
+```
+swapoff /root/extra.swp
+echo "/root/extra.swp none swap defaults 0 0" >> /etc/fstab
+
+swapon -a
+swapon -s
+```
+
