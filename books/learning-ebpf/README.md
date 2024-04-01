@@ -37,3 +37,64 @@ the sidecar approach has a few downsides:
 network security implemented in eBPF can police all traffic on the host machine,
 
 ## CHAPTER 2. eBPF’s “Hello World”
+
+
+CAP_BPF was introduced in kernel version 5.8, and it gives sufficient
+privilege to perform some eBPF operations like creating certain
+types of map. However, you will probably need additional
+capabilities:
+- CAP_PERFMON and CAP_BPF are both required to load tracing programs.
+- CAP_NET_ADMIN and CAP_BPF are both required for loading networking programs.
+
+As soon as the hello eBPF program is loaded and attached to an event, it gets trig‐
+gered by events that are being generated from preexisting processes.
+- eBPF programs can be used to dynamically change the behavior of the system
+- There’s no need to change anything about other applications for them to be visible to eBPF.
+
+the `bpf_trace_printk()` helper function in the kernel always sends output to the same predefined pseudofile
+location: `/sys/kernel/debug/tracing/trace_pipe`
+
+### BPF Maps
+
+A map is a data structure that can be accessed from an eBPF program and from user
+space:
+- User space writing configuration information to be retrieved by an eBPF program
+- An eBPF program storing state, for later retrieval by another eBPF program (or a future run of the same program)
+- An eBPF program writing results or metrics into a map, for retrieval by the user space app that will present results
+
+### Hash Table Map
+
+BCC’s version of C is very loosely a C-like language that BCC rewrites before it sends the
+code to the compiler. BCC offers some convenient shortcuts and macros that it converts into “proper” C.
+
+### Perf and Ring Buffer Maps
+
+Ring Buffer - a piece of memory
+logically organized in a ring, with separate “write” and “read” pointers. Data of some
+arbitrary length gets written to wherever the write pointer is, with the length informa‐
+tion included in a header for that data. The write pointer moves to after the end of
+that data, ready for the next write operation.
+
+data gets read from wherever the read pointer is, using
+the header to determine how much data to read. The read pointer moves along in the
+same direction as the write pointer so that it points to the next available piece of data.
+
+If the read pointer catches up with the write pointer, it simply means there’s no data to
+read. If a write operation would make the write pointer overtake the read pointer, the
+data doesn’t get written and a **drop counter** gets incremented. Read operations include
+the drop counter to indicate whether data has been lost since the last successful read.
+
+### Function Calls
+
+in the early days, eBPF programs were not permitted to call functions other than helper functions
+
+“always inline” their functions, like this:
+```
+static __always_inline void my_function(void *ctx, int val)
+```
+
+### Tail Calls
+
+tail calls can call and execute another eBPF program and
+replace the execution context, similar to how the execve() system call operates for
+regular processes.
