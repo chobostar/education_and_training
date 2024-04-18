@@ -148,3 +148,97 @@ Encryption
 [Module 6: Apply SRE in Your Organization](https://storage.googleapis.com/cloud-training/C-SRE101-B/M6_Apply%20SRE%20in%20Your%20Organization.pdf)
 
 
+## Practive exam questions
+
+>Question 3: Incorrect
+>You need to set up replication of a 4TB user authentication PostgreSQL database from an on-premises data center to Google Cloud Platform. Large updates are frequently made to the database and private address space communication is required for replication. Which networking solution should you choose?
+
+```
+Google Cloud Dedicated Interconnect
+
+Secured, fast connection, hence the choice. This will allow private connection from GCP to the data centre with a fast connection.
+```
+---
+Question 7: Incorrect
+You are working with an application development team who believes their current logging tool will not meet their needs for their new cloud-based product. They want a better tool to capture errors and help them analyze their historical log data. What should you do to help them find a solution that meets their needs?
+
+---
+Question 9: Incorrect
+Your Director of Engineering has mandated that all developers move their development infrastructure resources from on-premises virtual machines to Google Cloud Platform to reduce costs. These resources require state to persist and undergo multiple start/stop events throughout the day. You are tasked with designing the process of running a development environment in Google Cloud while ensuring cost visibility to the finance department.
+
+C is not correct because labels are used to organize instances, not to monitor metrics.
+
+---
+Question 17: Incorrect
+You are tasked with selecting a suitable storage system for your company's website click data. The data is collected using a custom analytics package and is streamed at a rate of 6,000 clicks per minute, with bursts of up to 8,500 clicks per second. It needs to be stored for future analysis by the data science and user experience teams. Which of the following options should you choose?
+
+Explanation:
+- Google Cloud Bigtable is the most suitable option for storing the click-data in this scenario.
+- It is designed for handling large amounts of data with high read/write throughput and low latency.
+- It is also scalable and can handle bursts of traffic.
+
+Cloud Storage and Cloud Datastore can also store unstructured data, but are not optimized for the high throughput and low latency requirements of click-data.
+
+---
+Question 18: Incorrect
+How can you optimize ongoing Cloud Storage spend while removing backup files older than 90 days from your backup Cloud Storage bucket?
+
+Explanation:
+The best option to remove backup files older than 90 days from a Cloud Storage bucket and optimize ongoing Cloud Storage spend is to write a lifecycle management rule in JSON and push it to the bucket with gsutil.
+
+Cloud Storage's lifecycle management feature allows you to automatically delete old, obsolete objects or move them to different storage classes.
+
+---
+Dataproc vs Dataflow
+
+The prime difference between Cloud Dataproc vs Cloud Dataflow is that Dataproc is primarily created for batch processing of large datasets with the help of Hadoop and Spark,
+while Dataflow is designed for larger dataset batch processing in real-time with varied data processing techniques such as Apache Beam
+
+---
+
+Question 20: Incorrect
+What steps should be taken to improve the performance of a new MySQL database server running on Google Compute Engine, which is used for importing and normalizing performance statistics, with n1-standard-8 virtual machine and 80 GB of SSD persistent disk?
+
+---
+Question 26: Incorrect
+How can you streamline and expedite the analysis and audit process for reviewing Google Cloud Identity and Access Management (Cloud IAM) policy changes over the previous 12 months?
+
+Enabling Logging export to Google BigQuery allows you to export the audit logs, including the Cloud IAM policy changes, to a BigQuery dataset. By using ACLs (Access Control Lists) and views, you can control and limit the data that is shared with the auditor, ensuring that they only have access to the specific information they require.
+
+Option D (GCS log export) allows you to store the audit logs in a GCS bucket, but it does not provide the same level of queryability and analysis capabilities as BigQuery. 
+
+---
+Question 32: Incorrect
+Your development team recently installed a new Linux kernel module on the batch servers running on Google Compute Engine (GCE) virtual machines (VMs) to improve the nightly batch process. However, after two days, 50% of the batch servers failed during the nightly batch run. You need to investigate the cause of the failure and collect relevant details to share with the development team. Which three actions should you take? (Choose three.)
+
+Wrong options:
+- Option B (Analyzing the GCE Activity log) is not the most appropriate choice because the GCE Activity log primarily captures administrative actions rather than application-level logs or events related to the kernel module or the batch run.
+- Option D (Checking live migration events) may not be directly relevant to identifying the cause of the failure unless there are specific indications that live migration events were the root cause.
+- Option F (Exporting a debug VM image) may not be necessary in this case as you can gather the required information by accessing the logs and metrics through Stackdriver Logging and the serial console.
+
+---
+Question 33: Incorrect
+Your company is looking to leverage the cloud for archiving and analyzing log data. They have approximately 100 TB of log data that needs to be stored as a long-term backup while also being available for analytics. Which two steps should you take?
+
+Option D (Insert the log data into Google Cloud Bigtable) is not the ideal choice for this use case. Google Cloud Bigtable is a NoSQL wide-column database primarily designed for high-performance, low-latency workloads. It may not be the most efficient or cost-effective option for log data storage and analysis.
+
+---
+Question 35: Incorrect
+Your organization wants to maintain independent control over IAM policies for different departments while still having centralized management. Which approach should you choose?
+
+Option A (Multiple Projects within a single Organization) may provide independent control over IAM policies, but it lacks centralized management. Managing separate projects for each department can lead to administrative overhead and potential inconsistencies in policy enforcement.
+
+---
+
+Question 37: Incorrect
+As part of implementing their disaster recovery plan, your company is facing latency issues and packet loss while replicating their production MySQL database from their private data center to their GCP project using a Google Cloud VPN connection. What should they do to address this issue?
+
+Unlike a VPN connection, which relies on the public internet and may introduce latency and packet loss, a dedicated interconnect provides a more reliable and consistent network connection.
+
+---
+
+Cloud Dataprep vs Google Cloud Datalab
+
+Cloud Dataprep: Organizations that need an intelligent cloud data service to visually explore, clean, and prepare data for analysis and machine learning
+
+Google Cloud Datalab: Anyone who needs an interactive tool for data exploration, analysis, visualization, and machine learning
