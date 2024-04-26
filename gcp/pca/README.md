@@ -242,3 +242,46 @@ Cloud Dataprep vs Google Cloud Datalab
 Cloud Dataprep: Organizations that need an intelligent cloud data service to visually explore, clean, and prepare data for analysis and machine learning
 
 Google Cloud Datalab: Anyone who needs an interactive tool for data exploration, analysis, visualization, and machine learning
+
+---
+---
+---
+
+The keywords are 1. High-throughput 2. Low latency .  So Dedicated Interconnect is the option.  
+
+---
+
+Predefined dashboards in GCP Cloud Monitoring are useful when you’re getting started or if you want to focus only on the standard metrics provided by Google Cloud for specific Google Cloud services. They offer a quick and easy way to view operational data of your applications without much customization required.
+
+On the other hand, creating custom dashboards is beneficial when you need to monitor specific parts of your application, need more detailed insights, or want to monitor metrics across various services. This is particularly valuable when the predefined dashboards do not provide the exact information you require, or if you need custom views for your monitoring data. These custom dashboards can be shared across your organization to provide specific views for different teams.
+
+---
+
+VPC Service Controls vs Cloud VPN + PGA
+
+Cloud VPN connection to the office network and enabling Private Google Access for on-premises hosts, provides secure connectivity between on-premises resources and Google Cloud but does not solely address preventing access to Cloud Storage buckets from outside the office network.
+
+---
+
+GCP Bucket
+Placing a retention policy on a bucket ensures that all current and future objects in the bucket cannot be deleted or replaced until they reach the age you define in the policy
+
+---
+
+Using Cloud Functions to host the APIs allows for a serverless and event-driven approach, where you pay only for the actual invocations and execution time. 
+
+This option leverages the cost efficiency of Cloud Storage, serverless architecture with Cloud Functions, and the scalability of Firestore, making it a suitable choice for a cost-effective web application with occasional traffic spikes. 
+
+---
+
+Serverless VPC access allows your serverless resources, such as App Engine, to connect to resources in a VPC network.
+
+---
+
+By using kubemci (Kubernetes Multi-Cluster Ingress), you can create a global HTTP(s) load balancer that spans both the existing us-central1 cluster and the new asia-southeast1 cluster.
+
+---
+
+VPC Service Controls allow you to define a security perimeter around your Google Cloud resources, including BigQuery.
+
+This helps prevent data exfiltration by enforcing restrictions on data movement within and outside the VPC network. By combining VPC Service Controls with Private Google Access, you can further enhance the security of your environment by ensuring that communication with Google services remains private and within the protected VPC network.
