@@ -285,3 +285,29 @@ By using kubemci (Kubernetes Multi-Cluster Ingress), you can create a global HTT
 VPC Service Controls allow you to define a security perimeter around your Google Cloud resources, including BigQuery.
 
 This helps prevent data exfiltration by enforcing restrictions on data movement within and outside the VPC network. By combining VPC Service Controls with Private Google Access, you can further enhance the security of your environment by ensuring that communication with Google services remains private and within the protected VPC network.
+
+---
+
+Copy VM steps:
+1. Create snapshot:
+   ```bash
+   gcloud compute snapshots create SNAPSHOT_NAME \
+    --source-disk SOURCE_DISK \
+    --snapshot-type SNAPSHOT_TYPE \
+    --source-disk-zone SOURCE_DISK_ZONE
+   ```
+2. Create a custom image from the snapshot using the following command:
+   ```bash
+   gcloud compute images create IMAGE_NAME \
+    --source-snapshot=SOURCE_SNAPSHOT \
+    [--storage-location=LOCATION]
+   ```
+3. Optional: Share the custom image with users who create VMs in the destination project.
+4. In your destination project, create a VM from the custom image using the following command:
+   ```bash
+   gcloud compute instances create VM_NAME \
+    --image-project IMAGE_PROJECT \
+    [--image IMAGE | --image-family IMAGE_FAMILY]
+    --subnet SUBNET
+   ```
+
