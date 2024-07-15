@@ -46,3 +46,9 @@ VXLAN can be even seen as inverse to VLAN:
 ## Bridge vs. Switch
 https://labs.iximiuz.com/courses/computer-networking-fundamentals/bridge-vs-switch
 
+Bridges transparently combine network nodes into Layer 2 segments creating Layer 2 broadcast domains.
+Bridges can combine not just end-nodes, but also sub-segments. I.e., one can connect a bridge to a bridge, for instance, doubling the max segment size.
+
+Networking devices:
+- Bridge - transparent Layer 2 device performing frame forwarding on a single L2 segment.
+- Router - non-transparent Layer 3 device performing IP packet forwarding between multiple L3 segments.
