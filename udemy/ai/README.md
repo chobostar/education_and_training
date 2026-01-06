@@ -391,3 +391,56 @@ Pipelines demo:
 https://colab.research.google.com/drive/1aMaEw8A56xs0bRM4lu8z7ou18jqyybGm?usp=sharing
 - Hugging Face's Transformers library offers a high-level pipeline API for easy inference across various AI tasks.
 - Pipelines support tasks such as sentiment analysis, named entity recognition, question answering, summarization, translation, zero-shot classification, text generation, image generation, and text-to-speech.
+
+# Mastering RAG
+
+### The Big Idea: Vector Embeddings
+- Vector: A set of numbers (coordinates in multi-dimensional space) representing the meaning of a text.
+- Role in RAG: Enables "fuzzy lookup"—finding relevant context based on semantic similarity rather than just keyword matching.
+
+### Two Types of LLMs
+- Auto-Regressive Models (e.g., GPT, Claude): Trained to predict the next token. They are primarily text generators.
+- Encoder / Embedding Models (e.g., BERT, MiniLM): Process the entire input to produce a single vector representation. They are used for classification and search.
+
+### Tokens vs. Vectors
+- Tokens (Input): Simple numeric IDs for text fragments created by a tokenizer. They serve as the raw input the model can "read."
+- Vectors (Output): Advanced numeric representations produced by the model. They capture relationships and deep semantic meaning.
+
+**Key takeaway**: Tokens are the simple inputs; vectors are the intelligent, model-generated outputs that capture essence and intent.
+
+--
+
+### Meaning as a Point in Space
+- Proximity = Similarity: In vector space, concepts with similar meanings are located close to each other.
+- Example: "Flight prices from JFK to Heathrow" and "Cost of tickets from New York to London" will have vectors very near each other, despite using different words.
+
+### Vector Arithmetic
+Meaning can be manipulated mathematically, proving that vectors capture the underlying structure of concepts:
+- `King - Man + Woman ≈ Queen`
+- `Paris - France + England ≈ London`
+
+### Evolution: From Words to Context
+- **word2vec**: An older algorithm that mapped individual words to vectors.
+- Modern Encoders: Map entire sentences, paragraphs, or abstract concepts (like a person's career path) to vectors while preserving context.
+
+### Technical Metric
+- Cosine Similarity: The standard technical method used to measure how "close" or similar two vectors are in high-dimensional space.
+
+**Summary**: Vector embeddings allow us to calculate the similarity of ideas mathematically, independent of the specific phrasing used.
+
+---
+
+### The RAG Workflow
+1. Vectorization: Both the user's question and the knowledge base are converted into vectors using an Encoder model.
+2. Semantic Search: Instead of matching keywords (e.g., "Heathrow"), the system searches a Vector Data Store for coordinates with the closest meaning (e.g., "London Airport").
+3. Context Injection: The system retrieves the relevant natural language text (not numbers) and adds it to the prompt.
+4. Generation: The Autoregressive LLM receives the context and the question to generate a factual response.
+
+### Key Distinctions
+- Encoder vs. LLM: The encoder is a separate tool used only for the search phase. The LLM only receives and generates human language.
+- Fuzzy Lookup: RAG is powerful because it understands concepts even when specific words don't match exactly.
+
+### The Reality of RAG
+- Empirical Practice: RAG is often described as a series of "hacks" and experiments. Finding the most relevant context requires trial, error, and practical tools like LangChain and Chroma.
+
+**Summary**: RAG uses an encoder to find the "meaningful" context in a vector database and feeds that context to an LLM to ensure accurate, grounded answers.
