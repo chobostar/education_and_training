@@ -444,3 +444,17 @@ Meaning can be manipulated mathematically, proving that vectors capture the unde
 - Empirical Practice: RAG is often described as a series of "hacks" and experiments. Finding the most relevant context requires trial, error, and practical tools like LangChain and Chroma.
 
 **Summary**: RAG uses an encoder to find the "meaningful" context in a vector database and feeds that context to an LLM to ensure accurate, grounded answers.
+
+---
+
+# Vector Databases
+
+- https://github.com/langchain-ai/langchain
+  - framework for building agents and LLM-powered applications. It helps you chain together interoperable components and third-party integrations to simplify AI application development
+  - https://docs.langchain.com/oss/python/langchain/overview
+  - load out knowledge base:
+    - read documents in all folders
+    - divide into chunks
+    - vectorize and store
+
+https://github.com/chroma-core/chroma  - Open-source search and retrieval database for AI applications.
